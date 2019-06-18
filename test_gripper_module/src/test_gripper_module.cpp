@@ -31,19 +31,19 @@ TestGripperModule::TestGripperModule()
   /* gripper */
   result_["joint_1"] = new robotis_framework::DynamixelState();
   result_["joint_2"] = new robotis_framework::DynamixelState();
-  result_["test_grip"] = new robotis_framework::DynamixelState();
+  result_["gripper"] = new robotis_framework::DynamixelState();
 
   /* gripper */
   joint_name_to_id_["joint_1"] = 0;
   joint_name_to_id_["joint_2"] = 1;
-  joint_name_to_id_["test_grip"] = 2;
+  joint_name_to_id_["gripper"] = 2;
 
   down_joint_value_["joint_1"] = 30.0;
   down_joint_value_["joint_2"] = 15.0;
-  down_joint_value_["test_grip"] = 0.0;
+  down_joint_value_["gripper"] = 0.0;
   up_joint_value_["joint_1"] = -30.0;
   up_joint_value_["joint_2"] = 75.0;
-  up_joint_value_["test_grip"] = 66.0;
+  up_joint_value_["gripper"] = 66.0;
 
   /* ----- parameter initialization ----- */
   present_joint_position_ = Eigen::VectorXd::Zero(result_.size());
@@ -369,12 +369,12 @@ void TestGripperModule::graspGripper(bool is_on)
     current_job_ = "grasp_on";
 
     goal_joint_pose_.clear();
-    goal_joint_pose_["test_grip"] = up_joint_value_["test_grip"] * M_PI / 180.0;
+    goal_joint_pose_["gripper"] = up_joint_value_["gripper"] * M_PI / 180.0;
   }
   else
   {
     current_job_ = "grasp_off";
-    goal_joint_pose_["test_grip"] = down_joint_value_["test_grip"] * M_PI / 180.0;
+    goal_joint_pose_["gripper"] = down_joint_value_["gripper"] * M_PI / 180.0;
   }
 
   tra_gene_tread_ = new boost::thread(boost::bind(&TestGripperModule::traGeneProcJointSpace, this));
