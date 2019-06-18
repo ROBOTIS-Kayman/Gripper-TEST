@@ -29,6 +29,9 @@
 #include <boost/thread.hpp>
 #include <yaml-cpp/yaml.h>
 
+#include <stdio.h>
+#include <time.h>
+#include <iostream>
 #include <fstream>
 
 #include "robotis_math/robotis_math.h"
@@ -49,6 +52,7 @@ class TestGripperModule
 {
 private:
   double control_cycle_sec_;
+  std::string data_file_name_;
   boost::thread  queue_thread_;
   boost::thread* tra_gene_tread_;
 
@@ -102,6 +106,9 @@ public:
   void moveUp();
   void moveDown();
   void graspGripper(bool is_on);
+  void saveData(bool on_start);
+
+  const std::string currentDateTime();
 
   std::map<std::string, double> down_joint_value_;
   std::map<std::string, double> up_joint_value_;

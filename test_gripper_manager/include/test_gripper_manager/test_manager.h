@@ -17,6 +17,8 @@
 #ifndef TEST_MANAGER_H
 #define TEST_MANAGER_H
 
+#include <ros/ros.h>
+#include <std_msgs/String.h>
 
 namespace test_gripper
 {
@@ -25,6 +27,12 @@ class TestManager
 {
 public:
   TestManager();
+
+private:
+  void demoCommandCallback(const std_msgs::String::ConstPtr &msg);
+
+  ros::Publisher total_test_time_pub_;
+  ros::Publisher number_of_test_pub_;
 };
 
 } // namespace test_gripper

@@ -152,6 +152,14 @@ void TestGripperModule::setCommandCallback(const std_msgs::String::ConstPtr &msg
   {
     moveDown();
   }
+  else if(msg->data == "save_start")
+  {
+    saveData(true);
+  }
+  else if(msg->data == "save_continue")
+  {
+    saveData(false);
+  }
 
 }
 
@@ -379,4 +387,29 @@ void TestGripperModule::graspGripper(bool is_on)
 
   tra_gene_tread_ = new boost::thread(boost::bind(&TestGripperModule::traGeneProcJointSpace, this));
   delete tra_gene_tread_;
+}
+
+void TestGripperModule::saveData(bool on_start)
+{
+  std::ofstream data_file;
+  if(on_start == true)
+    data_file_name_ = ros::package::getPath(ROS_PACKAGE_NAME) + "/data/" + currentDateTime() + ".csv";
+  data_file.open (data_file_name_);
+  data_file << "This is the first cell in the first column.\n";
+  data_file << "a,b,c,\n";
+  data_file << "c,s,v,\n";
+  data_file << "1,2,3.456\n";
+  data_file << "semi;colon";
+  data_file.close();
+}
+
+const std::string TestGripperModule::currentDateTime()
+{
+    time_t     now = time(0);
+    struct tm  tstruct;
+    char       buf[80];
+    tstruct = *localtime(&now);
+    strftime(buf, sizeof(buf), "%Y-%m-%d.%X", &tstruct); // YYYY-MM-DD.HH:mm:ss
+
+    return buf;
 }
