@@ -487,24 +487,34 @@ void TestGripperModule::saveStatus(std::string joint_name, std::string job_name,
   for (auto& it : joint_status->data_list_)
   {
     std::string item_name = it;
-    uint8_t length = dxl->ctrl_table_[item_name]->data_length_;
-    if(length == 1)
+
+    std::map<std::string, robotis_framework::ControlTableItem *>::iterator item_it = dxl->ctrl_table_.find(item_name);
+    if(item_it != dxl->ctrl_table_.end())
     {
-      uint8_t uint_data = dxl->dxl_state_->bulk_read_table_[item_name];
-      int8_t data = uint_data;
-      joint_status->data_value_.push_back(data);
-    }
-    else if(length == 2)
-    {
-      uint16_t uint_data = dxl->dxl_state_->bulk_read_table_[item_name];
-      int16_t data = uint_data;
-      joint_status->data_value_.push_back(data);
+      uint8_t length = item_it->second->data_length_;
+
+      if(length == 1)
+      {
+        uint8_t uint_data = dxl->dxl_state_->bulk_read_table_[item_name];
+        int8_t data = uint_data;
+        joint_status->data_value_.push_back(data);
+      }
+      else if(length == 2)
+      {
+        uint16_t uint_data = dxl->dxl_state_->bulk_read_table_[item_name];
+        int16_t data = uint_data;
+        joint_status->data_value_.push_back(data);
+      }
+      else
+      {
+        uint32_t uint_data = dxl->dxl_state_->bulk_read_table_[item_name];
+        int32_t data = uint_data;
+        joint_status->data_value_.push_back(data);
+      }
     }
     else
     {
-      uint32_t uint_data = dxl->dxl_state_->bulk_read_table_[item_name];
-      int32_t data = uint_data;
-      joint_status->data_value_.push_back(data);
+      joint_status->data_value_.push_back(0);
     }
   }
 
