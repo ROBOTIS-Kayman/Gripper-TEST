@@ -56,6 +56,7 @@ public:
   };
 
   TestManager();
+  ~TestManager();
 
   void startManager();
   void startTest();
@@ -69,7 +70,9 @@ private:
   void demoCommandCallback(const std_msgs::String::ConstPtr &msg);
   void movementDoneCallback(const std_msgs::String::ConstPtr &msg);
   void demoThread();
+  void queueThread();
 
+  boost::thread  queue_thread_;
   boost::thread  demo_thread_;
 
   ros::Publisher status_msg_pub_;

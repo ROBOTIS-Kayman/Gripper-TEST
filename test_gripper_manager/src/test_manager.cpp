@@ -25,14 +25,6 @@ TestManager::TestManager()
     is_ready_(false),
     current_process_(NONE)
 {
-  ros::NodeHandle nh;
-
-  status_msg_pub_ = nh.advertise<robotis_controller_msgs::StatusMsg>("/robotis/status", 1);
-  total_test_time_pub_ = nh.advertise<std_msgs::Duration>("/demo/total_test_time", 1);
-  number_of_test_pub_ = nh.advertise<std_msgs::Int32>("/demo/total_test_count", 1);
-  movement_done_sub_ = nh.subscribe("/robotis/test_gripper/movement_done", 1, &TestManager::movementDoneCallback, this);
-  command_sub_ = nh.subscribe("/demo/test_gripper/command", 1, &TestManager::demoCommandCallback, this);
-
   // set sequency
   ready_sequency_.push_back(MOVE_UP);
   ready_sequency_.push_back(GRASP_OFF);
@@ -44,7 +36,31 @@ TestManager::TestManager()
   test_sequency_.push_back(MOVE_DOWN);
   test_sequency_.push_back(GRASP_OFF);
 
+  queue_thread_ = boost::thread(boost::bind(&TestManager::queueThread, this));
   demo_thread_ = boost::thread(boost::bind(&TestManager::demoThread, this));
+}
+
+TestManager::~TestManager()
+{
+  queue_thread_.join();
+}
+
+void TestManager::queueThread()
+{
+  ros::NodeHandle    ros_node;
+  ros::CallbackQueue callback_queue;
+
+  ros_node.setCallbackQueue(&callback_queue);
+
+  status_msg_pub_ = ros_node.advertise<robotis_controller_msgs::StatusMsg>("/robotis/status", 1);
+  total_test_time_pub_ = ros_node.advertise<std_msgs::Duration>("/demo/total_test_time", 1);
+  number_of_test_pub_ = ros_node.advertise<std_msgs::Int32>("/demo/total_test_count", 1);
+  movement_done_sub_ = ros_node.subscribe("/robotis/test_gripper/movement_done", 1, &TestManager::movementDoneCallback, this);
+  command_sub_ = ros_node.subscribe("/demo/test_gripper/command", 1, &TestManager::demoCommandCallback, this);
+
+  ros::WallDuration duration(0.1);
+  while(ros_node.ok())
+    callback_queue.callAvailable(duration);
 }
 
 void TestManager::demoThread()
@@ -176,7 +192,10 @@ void TestManager::publishStatusMsg(unsigned int type, std::string msg)
 
 void TestManager::demoCommandCallback(const std_msgs::String::ConstPtr &msg)
 {
-
+  if(msg->data == "start")
+    startTest();
+  else if(msg->data == "stop")
+    stopTest();
 }
 
 void TestManager::movementDoneCallback(const std_msgs::String::ConstPtr &msg)
@@ -196,6 +215,7 @@ void TestManager::startManager()
 
 void TestManager::startTest()
 {
+  ROS_INFO("Start Testing");
   test_count_ = 0;
   current_job_index_ = 0;
 
@@ -204,6 +224,7 @@ void TestManager::startTest()
 
 void TestManager::stopTest()
 {
+  ROS_INFO("Stop Testing");
   current_process_ = ON_STOP;
 }
 
