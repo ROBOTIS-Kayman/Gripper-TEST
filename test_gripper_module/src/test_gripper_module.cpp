@@ -444,9 +444,9 @@ void TestGripperModule::saveData(bool on_start)
     // save index
     for (auto& it : joint_data_)
     {
-      data_file << it.first;
+      data_file << it.first << ",";
       for(auto& item_it : it.second->data_list_)
-        data_file  << "," << item_it ;
+        data_file << item_it << ",";
     }
     data_file << std::endl;
   }
@@ -456,9 +456,9 @@ void TestGripperModule::saveData(bool on_start)
   // save data
   for (auto& it : joint_data_)
   {
-    data_file << it.second->joint_status_;
+    data_file << it.second->joint_status_ << ",";
     for(auto& item_it : it.second->data_value_)
-      data_file  << "," << item_it ;
+      data_file << item_it << "," ;
   }
   data_file << std::endl;
 
@@ -487,9 +487,25 @@ void TestGripperModule::saveStatus(std::string joint_name, std::string job_name,
   for (auto& it : joint_status->data_list_)
   {
     std::string item_name = it;
-    uint16_t uint_data = dxl->dxl_state_->bulk_read_table_[item_name];
-    int16_t data = uint_data;
-    joint_status->data_value_.push_back(data);
+    uint8_t length = dxl->ctrl_table_[item_name]->data_length_;
+    if(length == 1)
+    {
+      uint8_t uint_data = dxl->dxl_state_->bulk_read_table_[item_name];
+      int8_t data = uint_data;
+      joint_status->data_value_.push_back(data);
+    }
+    else if(length == 2)
+    {
+      uint16_t uint_data = dxl->dxl_state_->bulk_read_table_[item_name];
+      int16_t data = uint_data;
+      joint_status->data_value_.push_back(data);
+    }
+    else
+    {
+      uint32_t uint_data = dxl->dxl_state_->bulk_read_table_[item_name];
+      int32_t data = uint_data;
+      joint_status->data_value_.push_back(data);
+    }
   }
 
   //  for(std::map<std::string, JointStatus*>::iterator it = joint_data_.begin(); it != joint_data_.end(); ++it)
