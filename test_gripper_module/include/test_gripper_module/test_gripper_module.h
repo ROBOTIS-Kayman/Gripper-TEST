@@ -106,11 +106,13 @@ public:
   bool isRunning();
   void publishStatusMsg(unsigned int type, std::string msg);
 
+  void handleCommand(const std::string &command);
   void moveUp();
   void moveDown();
   void graspGripper(bool is_on);
   void saveData(bool on_start);
   void saveStatus(std::string joint_name, std::string job_name, robotis_framework::Dynamixel *dxl);
+  void setTestCount(int count) {test_count_ = count;}
 
   const std::string currentDateTime();
 

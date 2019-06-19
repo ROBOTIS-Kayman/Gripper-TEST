@@ -92,15 +92,15 @@ void TestGripperModule::queueThread()
   status_msg_pub_ = ros_node.advertise<robotis_controller_msgs::StatusMsg>("/robotis/status", 1);
   set_ctrl_module_pub_ = ros_node.advertise<std_msgs::String>("/robotis/enable_ctrl_module", 1);
   goal_torque_limit_pub_ = ros_node.advertise<robotis_controller_msgs::SyncWriteItem>("/robotis/sync_write_item", 1);
-  movement_done_pub_ = ros_node.advertise<std_msgs::String>("/test/movement_done", 1);
+  movement_done_pub_ = ros_node.advertise<std_msgs::String>("/robotis/test_gripper/movement_done", 1);
 
   /* subscribe topics */
   //  ros::Subscriber set_mode_msg_sub = ros_node.subscribe("/test/gripper/set_mode_msg", 5,
   //                                                        &TestGripperModule::setModeMsgCallback, this);
-  ros::Subscriber joint_pose_msg_sub = ros_node.subscribe("/test/gripper/joint_pose_msg", 5,
+  ros::Subscriber joint_pose_msg_sub = ros_node.subscribe("/robotis/test_gripper/gripper/joint_pose_msg", 5,
                                                           &TestGripperModule::setJointPoseMsgCallback, this);
 
-  ros::Subscriber set_command_sub = ros_node.subscribe("/test/gripper/command", 1, &TestGripperModule::setCommandCallback, this);
+  ros::Subscriber set_command_sub = ros_node.subscribe("/robotis/test_gripper/command", 1, &TestGripperModule::setCommandCallback, this);
 
   /* service */
   //  ros::ServiceServer get_joint_pose_server = ros_node.advertiseService("/robotis/wholebody/get_joint_pose",
@@ -113,7 +113,8 @@ void TestGripperModule::queueThread()
 
 void TestGripperModule::setMode()
 {
-  //  ROS_INFO("--- Set Torque Control Mode ---");
+  ROS_INFO("Set Mode : Test Gripper");
+
   std_msgs::String str_msg;
   str_msg.data = module_name_;
   set_ctrl_module_pub_.publish(str_msg);
@@ -144,42 +145,8 @@ void TestGripperModule::setJointPoseMsgCallback(const sensor_msgs::JointState::C
 
 void TestGripperModule::setCommandCallback(const std_msgs::String::ConstPtr &msg)
 {
-  if(msg->data == "start")
-  {
-    setMode();
-    ROS_INFO("Set Mode : Test Gripper");
-  }
-  else if(enable_ == false)
-  {
-    ROS_ERROR("Module is not enabled, Command can not be executed.");
-    return;
-  }
-
-  if(msg->data == "gripper_on")
-  {
-    graspGripper(true);
-  }
-  else if(msg->data == "gripper_off")
-  {
-    graspGripper(false);
-  }
-  else if(msg->data == "move_up")
-  {
-    moveUp();
-  }
-  else if(msg->data == "move_down")
-  {
-    moveDown();
-  }
-  else if(msg->data == "save_start")
-  {
-    saveData(true);
-  }
-  else if(msg->data == "save_continue")
-  {
-    saveData(false);
-  }
-
+  // call handle command
+  handleCommand(msg->data);
 }
 
 void TestGripperModule::traGeneProcJointSpace()
@@ -268,12 +235,13 @@ bool TestGripperModule::setEndTrajectory()
 
 bool TestGripperModule::checkTrajectory()
 {
+  bool on_start = false;
   if (is_moving_ == true)
   {
     if (cnt_ == 0)
     {
       publishStatusMsg(robotis_controller_msgs::StatusMsg::STATUS_INFO, "Start Trajectory");
-      return true;
+      on_start = true;
     }
 
     // joint space control
@@ -283,7 +251,7 @@ bool TestGripperModule::checkTrajectory()
     cnt_++;
   }
 
-  return false;
+  return on_start;
 }
 
 void TestGripperModule::process(std::map<std::string, robotis_framework::Dynamixel *> dxls,
@@ -311,7 +279,7 @@ void TestGripperModule::process(std::map<std::string, robotis_framework::Dynamix
 
     goal_joint_position_(joint_name_to_id_[joint_name]) = dxl->dxl_state_->goal_position_;
 
-    saveStatus(joint_name, current_job_, dxl);
+//    saveStatus(joint_name, current_job_, dxl);
   }
 
   /* ----- Movement Event -----*/
@@ -358,7 +326,7 @@ void TestGripperModule::process(std::map<std::string, robotis_framework::Dynamix
 
     movement_done_pub_.publish(done_msg);
     current_job_ = "none";
-    test_count_ += 1;
+//    test_count_ += 1;
   }
 
   /*---------- Check Error ----------*/
@@ -391,6 +359,45 @@ void TestGripperModule::publishStatusMsg(unsigned int type, std::string msg)
   status_msg.status_msg = msg;
 
   status_msg_pub_.publish(status_msg);
+}
+
+void TestGripperModule::handleCommand(const std::string &command)
+{
+
+  if(command == "start")
+  {
+    setMode();
+  }
+  else if(enable_ == false)
+  {
+    ROS_ERROR("Module is not enabled, Command can not be executed.");
+    return;
+  }
+
+  if(command == "gripper_on")
+  {
+    graspGripper(true);
+  }
+  else if(command == "gripper_off")
+  {
+    graspGripper(false);
+  }
+  else if(command == "move_up")
+  {
+    moveUp();
+  }
+  else if(command == "move_down")
+  {
+    moveDown();
+  }
+  else if(command == "save_start")
+  {
+    saveData(true);
+  }
+  else if(command == "save_continue")
+  {
+    saveData(false);
+  }
 }
 
 void TestGripperModule::moveUp()

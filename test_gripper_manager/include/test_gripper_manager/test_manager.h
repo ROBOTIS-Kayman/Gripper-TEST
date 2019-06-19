@@ -18,7 +18,14 @@
 #define TEST_MANAGER_H
 
 #include <ros/ros.h>
+#include <std_msgs/Int32.h>
 #include <std_msgs/String.h>
+#include <std_msgs/Duration.h>
+
+#include <boost/thread.hpp>
+
+#include "robotis_controller_msgs/StatusMsg.h"
+#include "test_gripper_module/test_gripper_module.h"
 
 namespace test_gripper
 {
@@ -26,13 +33,60 @@ namespace test_gripper
 class TestManager
 {
 public:
+  enum TASK_INDEX
+  {
+    READYDEMO = 0,
+    GRASP_ON = 1,
+    MOVE_UP = 2,
+    WAIT = 3,
+    MOVE_DOWN = 4,
+    GRASP_OFF = 5,
+  };
+
+  enum PROCESS_INDEX
+  {
+    NONE = 0,
+    ON_START = 1,
+    ON_READY = 2,
+    ON_STOP = 3,
+    ON_RESUME = 4,
+    ON_WAIT = 5,
+    ON_WAIT_DONE = 6,
+    ON_PLAY = 7,
+  };
+
   TestManager();
 
-private:
-  void demoCommandCallback(const std_msgs::String::ConstPtr &msg);
+  void startManager();
+  void startTest();
+  void stopTest();
+  void resumeTest();
 
+  TestGripperModule* test_module_;
+
+private:
+  void publishStatusMsg(unsigned int type, std::string msg);
+  void demoCommandCallback(const std_msgs::String::ConstPtr &msg);
+  void movementDoneCallback(const std_msgs::String::ConstPtr &msg);
+  void demoThread();
+
+  boost::thread  demo_thread_;
+
+  ros::Publisher status_msg_pub_;
   ros::Publisher total_test_time_pub_;
   ros::Publisher number_of_test_pub_;
+  ros::Subscriber movement_done_sub_;
+  ros::Subscriber command_sub_;
+
+  bool is_start_, is_ready_;
+  int current_process_;
+  int current_job_index_;
+  std::vector<int> ready_sequency_;
+  std::vector<int> test_sequency_;
+  std::vector<int> job_sequency_;
+  ros::Time start_time_;
+  ros::Duration total_test_time_;
+  int test_count_;
 };
 
 } // namespace test_gripper

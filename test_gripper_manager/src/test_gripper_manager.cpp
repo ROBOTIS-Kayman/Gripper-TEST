@@ -63,7 +63,10 @@ int main(int argc, char **argv)
 
     controller->startTimer();
 
+    // test manager
     TestManager* test_manager = new TestManager();
+    test_manager->test_module_ = TestGripperModule::getInstance();
+    test_manager->startManager();
 
     while(ros::ok())
     {
