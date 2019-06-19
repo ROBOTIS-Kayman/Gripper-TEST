@@ -22,11 +22,14 @@ using namespace test_gripper;
 TestGripperModule::TestGripperModule()
   : control_cycle_sec_(0.008),
     is_moving_(false),
-    current_job_("none")
+    current_job_("none"),
+    test_count_(0)
 {
   enable_       = false;
   module_name_  = "test_gripper_module";
   control_mode_ = robotis_framework::PositionControl;
+
+  data_file_name_.clear();
 
   /* gripper */
   result_["joint_1"] = new robotis_framework::DynamixelState();
@@ -263,12 +266,15 @@ bool TestGripperModule::setEndTrajectory()
   return false;
 }
 
-void TestGripperModule::checkTrajectory()
+bool TestGripperModule::checkTrajectory()
 {
   if (is_moving_ == true)
   {
     if (cnt_ == 0)
+    {
       publishStatusMsg(robotis_controller_msgs::StatusMsg::STATUS_INFO, "Start Trajectory");
+      return true;
+    }
 
     // joint space control
     for (int dim = 0; dim < result_.size(); dim++)
@@ -276,6 +282,8 @@ void TestGripperModule::checkTrajectory()
 
     cnt_++;
   }
+
+  return false;
 }
 
 void TestGripperModule::process(std::map<std::string, robotis_framework::Dynamixel *> dxls,
@@ -307,7 +315,18 @@ void TestGripperModule::process(std::map<std::string, robotis_framework::Dynamix
   }
 
   /* ----- Movement Event -----*/
-  checkTrajectory();
+  bool is_start = checkTrajectory();
+  if(is_start == true)
+  {
+    for (auto& it : dxls)
+    {
+      std::string joint_name = it.first;
+      robotis_framework::Dynamixel* dxl = it.second;
+
+      saveStatus(joint_name, current_job_, dxl);
+    }
+    saveData(false);
+  }
 
   /* ---- Send Goal Joint Data -----*/
   for (std::map<std::string, robotis_framework::DynamixelState *>::iterator state_iter = result_.begin();
@@ -331,6 +350,7 @@ void TestGripperModule::process(std::map<std::string, robotis_framework::Dynamix
 
       saveStatus(joint_name, current_job_, dxl);
     }
+    saveData(false);
 
     // send movement done msg
     std_msgs::String done_msg;
@@ -338,6 +358,7 @@ void TestGripperModule::process(std::map<std::string, robotis_framework::Dynamix
 
     movement_done_pub_.publish(done_msg);
     current_job_ = "none";
+    test_count_ += 1;
   }
 
   /*---------- Check Error ----------*/
@@ -436,12 +457,13 @@ void TestGripperModule::graspGripper(bool is_on)
 void TestGripperModule::saveData(bool on_start)
 {
   std::ofstream data_file;
-  if(on_start == true)
+  if(on_start == true || data_file_name_.empty())
   {
     data_file_name_ = ros::package::getPath(ROS_PACKAGE_NAME) + "/data/" + currentDateTime() + ".csv";
     data_file.open (data_file_name_, std::ofstream::out | std::ofstream::app);
 
     // save index
+    data_file << "index,";
     for (auto& it : joint_data_)
     {
       data_file << it.first << ",";
@@ -454,6 +476,7 @@ void TestGripperModule::saveData(bool on_start)
     data_file.open (data_file_name_, std::ofstream::out | std::ofstream::app);
 
   // save data
+  data_file << test_count_ << ",";
   for (auto& it : joint_data_)
   {
     data_file << it.second->joint_status_ << ",";

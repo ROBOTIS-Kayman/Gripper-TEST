@@ -53,6 +53,7 @@ class TestGripperModule
     public robotis_framework::Singleton<TestGripperModule>
 {
 private:
+  int test_count_;
   double control_cycle_sec_;
   std::string data_file_name_;
   boost::thread  queue_thread_;
@@ -89,7 +90,7 @@ private:
   void setTorqueLimit();
   bool setEndTrajectory();
 
-  void checkTrajectory();
+  bool checkTrajectory();
 
 public:
   TestGripperModule();
