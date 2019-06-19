@@ -23,7 +23,8 @@ TestGripperModule::TestGripperModule()
   : control_cycle_sec_(0.008),
     is_moving_(false),
     current_job_("none"),
-    test_count_(0)
+    test_count_(0),
+    is_error_(false)
 {
   enable_       = false;
   module_name_  = "test_gripper_module";
@@ -40,12 +41,17 @@ TestGripperModule::TestGripperModule()
   joint_data_["joint_2"] = new JointStatus("joint_2");
   joint_data_["gripper"] = new JointStatus("gripper");
 
+  // set base current to check error
+  joint_data_["joint_1"]->base_current_ = 3000;
+  joint_data_["joint_1"]->check_current_task_ = "move_up_2, move_down_1";
+  joint_data_["gripper"]->base_current_ = 600;
+  joint_data_["gripper"]->check_current_task_ = "grasp_on_2, move_up_1, move_up_2, move_down_1, move_down_2, grasp_off_1";
+
   save_data_category_.push_back("hardware_error_status");
   save_data_category_.push_back("goal_position");
   save_data_category_.push_back("present_position");
   save_data_category_.push_back("present_current");
   save_data_category_.push_back("present_temperature");
-  save_data_category_.push_back("error");
 
   for(std::map<std::string, JointStatus*>::iterator it = joint_data_.begin(); it != joint_data_.end(); ++it)
   {
@@ -279,22 +285,22 @@ void TestGripperModule::process(std::map<std::string, robotis_framework::Dynamix
 
     goal_joint_position_(joint_name_to_id_[joint_name]) = dxl->dxl_state_->goal_position_;
 
-//    saveStatus(joint_name, current_job_, dxl);
+    //    saveStatus(joint_name, current_job_, dxl);
   }
 
   /* ----- Movement Event -----*/
   bool is_start = checkTrajectory();
-  if(is_start == true)
-  {
-    for (auto& it : dxls)
-    {
-      std::string joint_name = it.first;
-      robotis_framework::Dynamixel* dxl = it.second;
+  //  if(is_start == true)
+  //  {
+  //    for (auto& it : dxls)
+  //    {
+  //      std::string joint_name = it.first;
+  //      robotis_framework::Dynamixel* dxl = it.second;
 
-      saveStatus(joint_name, current_job_, dxl);
-    }
-    saveData(false);
-  }
+  //      saveStatus(joint_name, current_job_, dxl);
+  //    }
+  //    saveData(false);
+  //  }
 
   /* ---- Send Goal Joint Data -----*/
   for (std::map<std::string, robotis_framework::DynamixelState *>::iterator state_iter = result_.begin();
@@ -307,8 +313,13 @@ void TestGripperModule::process(std::map<std::string, robotis_framework::Dynamix
   /*---------- Movement End Event ----------*/
   bool is_finished = setEndTrajectory();
 
-  if(is_finished == true)
+  /*---------- Check Error ----------*/
+
+
+  /*---------- Check Error and Save data ----------*/
+  if(is_finished == true || is_start == true)
   {
+    int sub_index = is_start ? 1 : 2;
     // store data to save
     // loop dxl to find joints to check overload limit
     for (auto& it : dxls)
@@ -316,26 +327,61 @@ void TestGripperModule::process(std::map<std::string, robotis_framework::Dynamix
       std::string joint_name = it.first;
       robotis_framework::Dynamixel* dxl = it.second;
 
-      saveStatus(joint_name, current_job_, dxl);
-    }
-    saveData(false);
+      std::string error_status = "none";
+      // check position error : above 5.0 deg
+      double diff_position = fabs(dxl->dxl_state_->goal_position_ - dxl->dxl_state_->present_position_) * 180.0 / M_PI;
+      if(diff_position > 5.0)
+      {
+        error_status = "position error";
+        is_error_ = true;
+      }
 
+      // check current error
+      std::string sub_task = current_job_;
+      if(is_start == true)
+        sub_task = current_job_ + "_1";
+      if(is_finished == true)
+        sub_task = current_job_ + "_2";
+
+      JointStatus *joint_status = joint_data_[joint_name];
+      if(joint_status->check_current_task_.find(sub_task) != std::string::npos)
+      {
+        std::string present_current_name = dxl->present_current_item_->item_name_;
+        std::map<std::string, uint32_t>::iterator current_it = dxl->dxl_state_->bulk_read_table_.find(present_current_name);
+        if(current_it != dxl->dxl_state_->bulk_read_table_.end())
+        {
+          uint16_t present_current_data = current_it->second;
+          int16_t present_current = present_current_data;
+
+          if(abs(present_current) < joint_status->base_current_)
+          {
+            if(is_error_ == true)
+              error_status = error_status + ", current error";
+            else
+              error_status = "current error";
+
+            is_error_ = true;
+          }
+        }
+      }
+
+      saveStatus(joint_name, error_status, dxl);
+    }
+
+    saveData(false, sub_index);
+  }
+
+  // publish movement done msg
+  if(is_finished == true)
+  {
     // send movement done msg
     std_msgs::String done_msg;
     done_msg.data = current_job_;
 
     movement_done_pub_.publish(done_msg);
     current_job_ = "none";
-//    test_count_ += 1;
+    //    test_count_ += 1;
   }
-
-  /*---------- Check Error ----------*/
-  // position
-  // ...
-  // current
-  // ...
-  // If, Stop process and send error topic
-  // ...
 }
 
 void TestGripperModule::stop()
@@ -392,11 +438,11 @@ void TestGripperModule::handleCommand(const std::string &command)
   }
   else if(command == "save_start")
   {
-    saveData(true);
+    saveData(true, 0);
   }
   else if(command == "save_continue")
   {
-    saveData(false);
+    saveData(false, 0);
   }
 }
 
@@ -461,7 +507,7 @@ void TestGripperModule::graspGripper(bool is_on)
   delete tra_gene_tread_;
 }
 
-void TestGripperModule::saveData(bool on_start)
+void TestGripperModule::saveData(bool on_start, int sub_index)
 {
   std::ofstream data_file;
   if(on_start == true || data_file_name_.empty())
@@ -470,7 +516,7 @@ void TestGripperModule::saveData(bool on_start)
     data_file.open (data_file_name_, std::ofstream::out | std::ofstream::app);
 
     // save index
-    data_file << "index,";
+    data_file << "index,job,sub_index,";
     for (auto& it : joint_data_)
     {
       data_file << it.first << ",";
@@ -483,7 +529,7 @@ void TestGripperModule::saveData(bool on_start)
     data_file.open (data_file_name_, std::ofstream::out | std::ofstream::app);
 
   // save data
-  data_file << test_count_ << ",";
+  data_file << test_count_ << "," << current_job_ << "," << sub_index << ",";
   for (auto& it : joint_data_)
   {
     data_file << it.second->joint_status_ << ",";
@@ -507,11 +553,11 @@ const std::string TestGripperModule::currentDateTime()
   return buf;
 }
 
-void TestGripperModule::saveStatus(std::string joint_name, std::string job_name, robotis_framework::Dynamixel *dxl)
+void TestGripperModule::saveStatus(std::string joint_name, std::string error_status, robotis_framework::Dynamixel *dxl)
 {
   JointStatus *joint_status = joint_data_[joint_name];
 
-  joint_status->joint_status_ = job_name;
+  joint_status->joint_status_ = error_status;
   joint_status->data_value_.clear();
 
   for (auto& it : joint_status->data_list_)

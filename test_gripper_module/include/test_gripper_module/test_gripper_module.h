@@ -54,6 +54,7 @@ class TestGripperModule
 {
 private:
   int test_count_;
+  bool is_error_;
   double control_cycle_sec_;
   std::string data_file_name_;
   boost::thread  queue_thread_;
@@ -110,9 +111,10 @@ public:
   void moveUp();
   void moveDown();
   void graspGripper(bool is_on);
-  void saveData(bool on_start);
-  void saveStatus(std::string joint_name, std::string job_name, robotis_framework::Dynamixel *dxl);
+  void saveData(bool on_start, int sub_index);
+  void saveStatus(std::string joint_name, std::string error_status, robotis_framework::Dynamixel *dxl);
   void setTestCount(int count) {test_count_ = count;}
+  bool checkError() {return is_error_;}
 
   const std::string currentDateTime();
 

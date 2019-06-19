@@ -76,6 +76,7 @@ void TestManager::demoThread()
       {
         job_sequency_.clear();
         job_sequency_.assign(ready_sequency_.begin(), ready_sequency_.end());
+        ROS_INFO("Job is set by being ready.");
 
         current_process_ = ON_PLAY;
       }
@@ -101,6 +102,7 @@ void TestManager::demoThread()
       job_sequency_.clear();
       job_sequency_.assign(test_sequency_.begin(), test_sequency_.end());
       current_process_ = ON_PLAY;
+      ROS_INFO("Job is set by playing test.");
       break;
 
     case ON_WAIT_DONE:
