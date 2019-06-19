@@ -41,6 +41,8 @@
 #include "robotis_controller_msgs/StatusMsg.h"
 #include "robotis_controller_msgs/SyncWriteItem.h"
 
+#include "joint_status.h"
+
 namespace test_gripper
 {
 
@@ -85,7 +87,7 @@ private:
   void setCommandCallback(const std_msgs::String::ConstPtr &msg);
   void traGeneProcJointSpace();
   void setTorqueLimit();
-  void setEndTrajectory();
+  bool setEndTrajectory();
 
   void checkTrajectory();
 
@@ -107,12 +109,15 @@ public:
   void moveDown();
   void graspGripper(bool is_on);
   void saveData(bool on_start);
+  void saveStatus(std::string joint_name, std::string job_name, robotis_framework::Dynamixel *dxl);
 
   const std::string currentDateTime();
 
+  std::vector<std::string> save_data_category_;
   std::map<std::string, double> down_joint_value_;
   std::map<std::string, double> up_joint_value_;
   std::map<std::string, double> goal_joint_pose_;
+  std::map<std::string, JointStatus*> joint_data_;
   std::string current_job_;
 };
 

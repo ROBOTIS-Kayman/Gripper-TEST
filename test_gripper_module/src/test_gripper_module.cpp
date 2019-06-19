@@ -33,6 +33,22 @@ TestGripperModule::TestGripperModule()
   result_["joint_2"] = new robotis_framework::DynamixelState();
   result_["gripper"] = new robotis_framework::DynamixelState();
 
+  joint_data_["joint_1"] = new JointStatus("joint_1");
+  joint_data_["joint_2"] = new JointStatus("joint_2");
+  joint_data_["gripper"] = new JointStatus("gripper");
+
+  save_data_category_.push_back("hardware_error_status");
+  save_data_category_.push_back("goal_position");
+  save_data_category_.push_back("present_position");
+  save_data_category_.push_back("present_current");
+  save_data_category_.push_back("present_temperature");
+  save_data_category_.push_back("error");
+
+  for(std::map<std::string, JointStatus*>::iterator it = joint_data_.begin(); it != joint_data_.end(); ++it)
+  {
+    it->second->data_list_.assign(save_data_category_.begin(), save_data_category_.end());
+  }
+
   /* gripper */
   joint_name_to_id_["joint_1"] = 0;
   joint_name_to_id_["joint_2"] = 1;
@@ -76,16 +92,16 @@ void TestGripperModule::queueThread()
   movement_done_pub_ = ros_node.advertise<std_msgs::String>("/test/movement_done", 1);
 
   /* subscribe topics */
-//  ros::Subscriber set_mode_msg_sub = ros_node.subscribe("/test/gripper/set_mode_msg", 5,
-//                                                        &TestGripperModule::setModeMsgCallback, this);
+  //  ros::Subscriber set_mode_msg_sub = ros_node.subscribe("/test/gripper/set_mode_msg", 5,
+  //                                                        &TestGripperModule::setModeMsgCallback, this);
   ros::Subscriber joint_pose_msg_sub = ros_node.subscribe("/test/gripper/joint_pose_msg", 5,
                                                           &TestGripperModule::setJointPoseMsgCallback, this);
 
   ros::Subscriber set_command_sub = ros_node.subscribe("/test/gripper/command", 1, &TestGripperModule::setCommandCallback, this);
 
   /* service */
-//  ros::ServiceServer get_joint_pose_server = ros_node.advertiseService("/robotis/wholebody/get_joint_pose",
-//                                                                       &TestGripperModule::getJointPoseCallback, this);
+  //  ros::ServiceServer get_joint_pose_server = ros_node.advertiseService("/robotis/wholebody/get_joint_pose",
+  //                                                                       &TestGripperModule::getJointPoseCallback, this);
 
   ros::WallDuration duration(control_cycle_sec_);
   while(ros_node.ok())
@@ -118,7 +134,7 @@ void TestGripperModule::setJointPoseMsgCallback(const sensor_msgs::JointState::C
   else
     ROS_INFO("previous task is alive");
 
-//  movement_done_msg_.data = "gripper";
+  //  movement_done_msg_.data = "gripper";
 
   return;
 }
@@ -227,7 +243,7 @@ void TestGripperModule::setTorqueLimit()
   goal_torque_limit_pub_.publish(sync_write_msg);
 }
 
-void TestGripperModule::setEndTrajectory()
+bool TestGripperModule::setEndTrajectory()
 {
   if (is_moving_ == true)
   {
@@ -240,13 +256,11 @@ void TestGripperModule::setEndTrajectory()
       is_moving_ = false;
       cnt_ = 0;
 
-      std_msgs::String done_msg;
-      done_msg.data = current_job_;
-
-      movement_done_pub_.publish(done_msg);
-      current_job_ = "none";
+      return true;
     }
   }
+
+  return false;
 }
 
 void TestGripperModule::checkTrajectory()
@@ -265,7 +279,7 @@ void TestGripperModule::checkTrajectory()
 }
 
 void TestGripperModule::process(std::map<std::string, robotis_framework::Dynamixel *> dxls,
-                            std::map<std::string, double> sensors)
+                                std::map<std::string, double> sensors)
 {
   if (enable_ == false)
     return;
@@ -288,6 +302,8 @@ void TestGripperModule::process(std::map<std::string, robotis_framework::Dynamix
     present_joint_velocity_(joint_name_to_id_[joint_name]) = dxl->dxl_state_->present_velocity_;
 
     goal_joint_position_(joint_name_to_id_[joint_name]) = dxl->dxl_state_->goal_position_;
+
+    saveStatus(joint_name, current_job_, dxl);
   }
 
   /* ----- Movement Event -----*/
@@ -302,7 +318,35 @@ void TestGripperModule::process(std::map<std::string, robotis_framework::Dynamix
   }
 
   /*---------- Movement End Event ----------*/
-  setEndTrajectory();
+  bool is_finished = setEndTrajectory();
+
+  if(is_finished == true)
+  {
+    // store data to save
+    // loop dxl to find joints to check overload limit
+    for (auto& it : dxls)
+    {
+      std::string joint_name = it.first;
+      robotis_framework::Dynamixel* dxl = it.second;
+
+      saveStatus(joint_name, current_job_, dxl);
+    }
+
+    // send movement done msg
+    std_msgs::String done_msg;
+    done_msg.data = current_job_;
+
+    movement_done_pub_.publish(done_msg);
+    current_job_ = "none";
+  }
+
+  /*---------- Check Error ----------*/
+  // position
+  // ...
+  // current
+  // ...
+  // If, Stop process and send error topic
+  // ...
 }
 
 void TestGripperModule::stop()
@@ -393,23 +437,65 @@ void TestGripperModule::saveData(bool on_start)
 {
   std::ofstream data_file;
   if(on_start == true)
+  {
     data_file_name_ = ros::package::getPath(ROS_PACKAGE_NAME) + "/data/" + currentDateTime() + ".csv";
-  data_file.open (data_file_name_);
-  data_file << "This is the first cell in the first column.\n";
-  data_file << "a,b,c,\n";
-  data_file << "c,s,v,\n";
-  data_file << "1,2,3.456\n";
-  data_file << "semi;colon";
+    data_file.open (data_file_name_, std::ofstream::out | std::ofstream::app);
+
+    // save index
+    for (auto& it : joint_data_)
+    {
+      data_file << it.first;
+      for(auto& item_it : it.second->data_list_)
+        data_file  << "," << item_it ;
+      data_file << std::endl;
+    }
+  }
+  else
+    data_file.open (data_file_name_, std::ofstream::out | std::ofstream::app);
+
+  // save data
+  for (auto& it : joint_data_)
+  {
+    data_file << it.second->joint_status_;
+    for(auto& item_it : it.second->data_value_)
+      data_file  << "," << item_it ;
+    data_file << std::endl;
+  }
+
   data_file.close();
+  ROS_INFO_STREAM("Saved : " << data_file_name_);
 }
 
 const std::string TestGripperModule::currentDateTime()
 {
-    time_t     now = time(0);
-    struct tm  tstruct;
-    char       buf[80];
-    tstruct = *localtime(&now);
-    strftime(buf, sizeof(buf), "%Y-%m-%d.%X", &tstruct); // YYYY-MM-DD.HH:mm:ss
+  time_t     now = time(0);
+  struct tm  tstruct;
+  char       buf[80];
+  tstruct = *localtime(&now);
+  strftime(buf, sizeof(buf), "%Y-%m-%d.%X", &tstruct); // YYYY-MM-DD.HH:mm:ss
 
-    return buf;
+  return buf;
+}
+
+void TestGripperModule::saveStatus(std::string joint_name, std::string job_name, robotis_framework::Dynamixel *dxl)
+{
+  JointStatus *joint_status = joint_data_[joint_name];
+
+  joint_status->joint_status_ = job_name;
+  for (auto& it : joint_status->data_list_)
+  {
+    std::string item_name = it;
+    uint16_t uint_data = dxl->dxl_state_->bulk_read_table_[item_name];
+    int16_t data = uint_data;
+    joint_status->data_value_.push_back(data);
+  }
+
+  //  for(std::map<std::string, JointStatus*>::iterator it = joint_data_.begin(); it != joint_data_.end(); ++it)
+  //  {
+  //    it->second->data_list_.push_back("hardware_error_status");
+  //    it->second->data_list_.push_back("goal_position");
+  //    it->second->data_list_.push_back("present_position");
+  //    it->second->data_list_.push_back("present_current");
+  //    it->second->data_list_.push_back("present_temperature");
+  //  }
 }
