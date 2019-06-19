@@ -447,8 +447,8 @@ void TestGripperModule::saveData(bool on_start)
       data_file << it.first;
       for(auto& item_it : it.second->data_list_)
         data_file  << "," << item_it ;
-      data_file << std::endl;
     }
+    data_file << std::endl;
   }
   else
     data_file.open (data_file_name_, std::ofstream::out | std::ofstream::app);
@@ -459,8 +459,8 @@ void TestGripperModule::saveData(bool on_start)
     data_file << it.second->joint_status_;
     for(auto& item_it : it.second->data_value_)
       data_file  << "," << item_it ;
-    data_file << std::endl;
   }
+  data_file << std::endl;
 
   data_file.close();
   ROS_INFO_STREAM("Saved : " << data_file_name_);
@@ -482,6 +482,8 @@ void TestGripperModule::saveStatus(std::string joint_name, std::string job_name,
   JointStatus *joint_status = joint_data_[joint_name];
 
   joint_status->joint_status_ = job_name;
+  joint_status->data_value_.clear();
+
   for (auto& it : joint_status->data_list_)
   {
     std::string item_name = it;
