@@ -23,6 +23,7 @@
 #include <std_msgs/Duration.h>
 
 #include <boost/thread.hpp>
+#include <yaml-cpp/yaml.h>
 
 #include "robotis_controller_msgs/StatusMsg.h"
 #include "test_gripper_module/test_gripper_module.h"
@@ -64,7 +65,10 @@ public:
   void readyTest();
   void startTest();
   void stopTest();
+  void startContinueTest();
   void resumeTest();
+  bool getPrevTestData();
+  void savePrevTestData();
 
   TestGripperModule* test_module_;
 

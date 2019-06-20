@@ -83,6 +83,8 @@ TestGripperModule::~TestGripperModule()
 
 void TestGripperModule::initialize(const int control_cycle_msec, robotis_framework::Robot *robot)
 {
+  data_file_path_ = ros::package::getPath(ROS_PACKAGE_NAME) + "/data/";
+
   control_cycle_sec_ = control_cycle_msec * 0.001;
   queue_thread_ = boost::thread(boost::bind(&TestGripperModule::queueThread, this));
 }
@@ -314,9 +316,6 @@ void TestGripperModule::process(std::map<std::string, robotis_framework::Dynamix
   /*---------- Movement End Event ----------*/
   bool is_finished = setEndTrajectory();
 
-  /*---------- Check Error ----------*/
-
-
   /*---------- Check Error and Save data ----------*/
   if(is_finished == true || is_start == true)
   {
@@ -514,10 +513,13 @@ void TestGripperModule::graspGripper(bool is_on)
 
 void TestGripperModule::saveData(bool on_start, int sub_index)
 {
+  if(test_count_ < 0)
+    return;
+
   std::ofstream data_file;
   if(on_start == true || data_file_name_.empty())
   {
-    data_file_name_ = ros::package::getPath(ROS_PACKAGE_NAME) + "/data/" + currentDateTime() + ".csv";
+    data_file_name_ = data_file_path_ + currentDateTime() + ".csv";
     data_file.open (data_file_name_, std::ofstream::out | std::ofstream::app);
 
     // save index

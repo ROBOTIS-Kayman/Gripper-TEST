@@ -18,4 +18,5 @@
   <depend>robotis_controller</depend>
   <depend>robotis_math</depend>
   <depend>test_gripper_module</depend>
+  <depend>yaml-cpp</depend>
 </package>

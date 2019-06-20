@@ -57,6 +57,7 @@ private:
   bool is_error_;
   double control_cycle_sec_;
   std::string data_file_name_;
+  std::string data_file_path_;
   boost::thread  queue_thread_;
   boost::thread* tra_gene_tread_;
 
@@ -116,6 +117,9 @@ public:
   void setTestCount(int count) {test_count_ = count;}
   bool checkError() {return is_error_;}
   void clearError() {is_error_ = false;}
+  void setDataFileName(const std::string &file_name) {data_file_name_ = file_name;}
+  const std::string& getDataFilePath() {return data_file_path_;}
+  const std::string& getDataFileName() {return data_file_name_;}
 
   const std::string currentDateTime();
 

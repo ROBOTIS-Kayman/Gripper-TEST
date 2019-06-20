@@ -216,7 +216,8 @@ void TestManager::demoThread()
     dur.sleep();
 
     // publish testing time
-    publishTestTime();
+    if(last_command_ == "start" || last_command_ == "resume" || last_command_ == "start_continue")
+      publishTestTime();
   }
 }
 
@@ -258,10 +259,13 @@ void TestManager::publishCount()
 
 void TestManager::publishTestTime()
 {
+  if(is_start_ == false || is_ready_ == false)
+    return;
+
   std_msgs::Duration total_test_time_msg;
   total_test_time_msg.data = (ros::Time::now() - start_time_) + total_test_time_;
 
-  number_of_test_pub_.publish(total_test_time_msg);
+  total_test_time_pub_.publish(total_test_time_msg);
 }
 
 void TestManager::demoCommandCallback(const std_msgs::String::ConstPtr &msg)
@@ -270,6 +274,8 @@ void TestManager::demoCommandCallback(const std_msgs::String::ConstPtr &msg)
 
   if(msg->data == "start")
     startTest();
+  else if(msg->data == "start_continue")
+    startContinueTest();
   else if(msg->data == "stop")
     stopTest();
   else if(msg->data == "ready")
@@ -305,11 +311,16 @@ void TestManager::readyTest()
 
 void TestManager::startTest()
 {
+  if(is_start_ == true)
+  {
+    ROS_INFO("Alread started testing.");
+    return;
+  }
+
   ROS_INFO("Start Testing");
   total_test_time_ = ros::Duration(0.0);
   test_count_ = 1;
   current_job_index_ = 0;
-
 
   current_process_ = ON_START;
 }
@@ -326,6 +337,7 @@ void TestManager::stopTest()
   current_process_ = ON_STOP;
   test_module_->clearError();
   total_test_time_ = (ros::Time::now() - start_time_) + total_test_time_;
+  savePrevTestData();
 }
 
 void TestManager::resumeTest()
@@ -340,5 +352,74 @@ void TestManager::resumeTest()
   current_process_ = ON_RESUME;
 }
 
+void TestManager::startContinueTest()
+{
+  if(is_start_ == true)
+  {
+    ROS_INFO("Alread started testing.");
+    return;
+  }
+
+  // check last testing file.
+
+  ROS_INFO("Start Testing continue");
+
+  bool result = getPrevTestData();
+  if(result == false)
+  {
+    ROS_WARN("It can not be started continue. It will start in first.");
+
+    total_test_time_ = ros::Duration(0.0);
+    test_count_ = 1;
+  }
+
+  current_job_index_ = 0;
+
+  current_process_ = ON_START;
+}
+
+bool TestManager::getPrevTestData()
+{
+  std::string file_name = test_module_->getDataFilePath() + "prev_test.yaml";
+
+  // get prev test data
+  YAML::Node doc;
+  try
+  {
+    // load yaml
+    doc = YAML::LoadFile(file_name.c_str());
+
+    // get filename, count, time
+    std::string file_name = doc["save_file"].as<std::string>();
+    test_count_ = doc["test_count"].as<int>();
+    double test_time = doc["test_time"].as<double>();
+    total_test_time_ = ros::Duration(test_time);
+  }
+  catch (const std::exception& e)
+  {
+    ROS_ERROR("Fail to load prev test file.");
+    return false;
+  }
+
+  return true;
+}
+
+void TestManager::savePrevTestData()
+{
+  std::string file_name = test_module_->getDataFilePath() + "prev_test.yaml";
+
+  std::string data_file_name = test_module_->getDataFileName();
+
+  YAML::Emitter yaml_out;
+  yaml_out << YAML::BeginMap;
+  yaml_out << YAML::Key << "save_file" << YAML::Value << data_file_name;
+  yaml_out << YAML::Key << "test_count" << YAML::Value << test_count_;
+  yaml_out << YAML::Key << "test_time" << YAML::Value << total_test_time_.toSec();
+  yaml_out << YAML::EndMap;
+
+  std::ofstream fout(file_name.c_str());
+  fout << yaml_out.c_str();  // dump it back into the file
+  return;
+}
 
 }
