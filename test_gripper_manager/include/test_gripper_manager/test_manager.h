@@ -74,6 +74,7 @@ private:
   void movementDoneCallback(const std_msgs::String::ConstPtr &msg);
   void demoThread();
   void queueThread();
+  void setTimer(double sec);
 
   boost::thread  queue_thread_;
   boost::thread  demo_thread_;

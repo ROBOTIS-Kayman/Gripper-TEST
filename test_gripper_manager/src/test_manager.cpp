@@ -165,7 +165,8 @@ void TestManager::demoThread()
             break;
 
           case WAIT:
-            ros::Duration(3.0).sleep();
+            boost::thread timer_thread = boost::thread(boost::bind(&TestManager::setTimer, this, 3.0));
+//            ros::Duration(3.0).sleep();
             current_process_ = ON_WAIT_DONE;
             break;
 
@@ -210,6 +211,17 @@ void TestManager::demoThread()
     // wait 0.1sec
     dur.sleep();
   }
+}
+
+void TestManager::setTimer(double sec)
+{
+  ROS_INFO_STREAM("Wait for " << sec);
+  ros::Duration(sec).sleep();
+
+  if(current_process_ == ON_WAIT)
+    current_process_ = ON_WAIT_DONE;
+  else if(current_process_ == ON_STOP)
+    current_process_ = ON_STOP_DONE;
 }
 
 void TestManager::publishStatusMsg(unsigned int type, std::string msg)
