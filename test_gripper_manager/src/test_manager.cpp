@@ -199,14 +199,17 @@ void TestManager::demoThread()
             // publish test count
             publishCount();
           }
-          else  // "ready" or "start" command
+          else  // "ready" or "start" or "start_continue" command
           {
             is_ready_ = true;
 
             if(last_command_ == "start" || last_command_ == "start_continue")
               current_process_ = ON_READY;
             else
+            {
+              is_start_ = false;
               current_process_ = NONE;
+            }
           }
         }
       }
