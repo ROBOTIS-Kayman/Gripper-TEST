@@ -203,7 +203,7 @@ void TestManager::demoThread()
           {
             is_ready_ = true;
 
-            if(last_command_ == "start")
+            if(last_command_ == "start" || last_command_ == "start_continue")
               current_process_ = ON_READY;
             else
               current_process_ = NONE;
