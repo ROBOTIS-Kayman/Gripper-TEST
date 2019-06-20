@@ -75,6 +75,7 @@ private:
   void demoThread();
   void queueThread();
   void setTimer(double sec);
+  void setTimerThread(double sec);
 
   boost::thread  queue_thread_;
   boost::thread  demo_thread_;
