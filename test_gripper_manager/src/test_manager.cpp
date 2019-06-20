@@ -198,6 +198,10 @@ void TestManager::demoThread()
             test_module_->setTestCount(test_count_);
             // publish test count
             publishCount();
+
+            // check scheduled to stop
+            if(last_command_ == "stop_end")
+              stopTest();
           }
           else  // "ready" or "start" or "start_continue" command
           {
@@ -285,6 +289,8 @@ void TestManager::demoCommandCallback(const std_msgs::String::ConstPtr &msg)
     readyTest();
   else if(msg->data == "resume")
     resumeTest();
+  else if(msg->data == "stop_end")
+    ;
 }
 
 void TestManager::movementDoneCallback(const std_msgs::String::ConstPtr &msg)
