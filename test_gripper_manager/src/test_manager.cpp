@@ -78,6 +78,8 @@ void TestManager::demoThread()
 
       current_process_ = ON_PLAY;
       test_module_->setTestCount(-1);
+
+      is_start_ = true;
       break;
 
     case ON_START:
@@ -100,6 +102,11 @@ void TestManager::demoThread()
 
 
     case ON_STOP:
+      break;
+
+    case ON_STOP_DONE:
+      current_job_index_ += 1;
+      current_process_ = ON_STOP;
       break;
 
     case ON_RESUME:
@@ -226,13 +233,16 @@ void TestManager::demoCommandCallback(const std_msgs::String::ConstPtr &msg)
     stopTest();
   else if(msg->data == "ready")
     readyTest();
+  else if(msg->data == "resume")
+    resumeTest();
 }
 
 void TestManager::movementDoneCallback(const std_msgs::String::ConstPtr &msg)
 {
-
   if(current_process_ == ON_WAIT)
     current_process_ = ON_WAIT_DONE;
+  else if(current_process_ == ON_STOP)
+    current_process_ = ON_STOP_DONE;
 }
 
 void TestManager::startManager()

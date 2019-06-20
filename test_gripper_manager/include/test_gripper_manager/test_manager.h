@@ -54,6 +54,7 @@ public:
     ON_WAIT_DONE = 6,
     ON_PLAY = 7,
     ON_INIT = 8,
+    ON_STOP_DONE = 9,
   };
 
   TestManager();
