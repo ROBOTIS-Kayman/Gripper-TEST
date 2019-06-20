@@ -53,12 +53,14 @@ public:
     ON_WAIT = 5,
     ON_WAIT_DONE = 6,
     ON_PLAY = 7,
+    ON_INIT = 8,
   };
 
   TestManager();
   ~TestManager();
 
   void startManager();
+  void readyTest();
   void startTest();
   void stopTest();
   void resumeTest();
@@ -81,6 +83,7 @@ private:
   ros::Subscriber movement_done_sub_;
   ros::Subscriber command_sub_;
 
+  std::string last_command_;
   bool is_start_, is_ready_;
   int current_process_;
   int current_job_index_;

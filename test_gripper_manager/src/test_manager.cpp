@@ -71,6 +71,15 @@ void TestManager::demoThread()
     // check command
     switch (current_process_)
     {
+    case ON_INIT:
+      job_sequency_.clear();
+      job_sequency_.assign(ready_sequency_.begin(), ready_sequency_.end());
+      ROS_INFO("Job is set by being ready.");
+
+      current_process_ = ON_PLAY;
+      test_module_->setTestCount(-1);
+      break;
+
     case ON_START:
       if(is_ready_ == false)
       {
@@ -94,6 +103,7 @@ void TestManager::demoThread()
       break;
 
     case ON_RESUME:
+      current_process_ = ON_PLAY;
       break;
 
     case ON_READY:
@@ -177,10 +187,14 @@ void TestManager::demoThread()
             // publish test count
             // ...
           }
-          else  // start test
+          else  // "ready" or "start" command
           {
             is_ready_ = true;
-            current_process_ = ON_READY;
+
+            if(last_command_ == "start")
+              current_process_ = ON_READY;
+            else
+              current_process_ = NONE;
           }
         }
       }
@@ -204,10 +218,14 @@ void TestManager::publishStatusMsg(unsigned int type, std::string msg)
 
 void TestManager::demoCommandCallback(const std_msgs::String::ConstPtr &msg)
 {
+  last_command_ = msg->data;
+
   if(msg->data == "start")
     startTest();
   else if(msg->data == "stop")
     stopTest();
+  else if(msg->data == "ready")
+    readyTest();
 }
 
 void TestManager::movementDoneCallback(const std_msgs::String::ConstPtr &msg)
@@ -225,6 +243,15 @@ void TestManager::startManager()
     ROS_ERROR("Test module is not set to test manager.");
 }
 
+void TestManager::readyTest()
+{
+  ROS_INFO("Reagy Testing");
+  test_count_ = -1;
+  current_job_index_ = 0;
+
+  current_process_ = ON_INIT;
+}
+
 void TestManager::startTest()
 {
   ROS_INFO("Start Testing");
@@ -238,10 +265,12 @@ void TestManager::stopTest()
 {
   ROS_INFO("Stop Testing");
   current_process_ = ON_STOP;
+  test_module_->clearError();
 }
 
 void TestManager::resumeTest()
 {
+  ROS_INFO("Resume Tesing");
   current_process_ = ON_RESUME;
 }
 

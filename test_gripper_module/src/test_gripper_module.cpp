@@ -329,17 +329,17 @@ void TestGripperModule::process(std::map<std::string, robotis_framework::Dynamix
       robotis_framework::Dynamixel* dxl = it.second;
 
       std::string error_status = "";
+      // check position error : above 5.0 deg
+      double diff_position = fabs(dxl->dxl_state_->goal_position_ - dxl->dxl_state_->present_position_) * 180.0 / M_PI;
+      if(diff_position > 5.0)
+      {
+        error_status = "position error";
+        is_error_ = true;
+      }
+
+      // check current error when testing
       if(test_count_ > 0)
       {
-        // check position error : above 5.0 deg
-        double diff_position = fabs(dxl->dxl_state_->goal_position_ - dxl->dxl_state_->present_position_) * 180.0 / M_PI;
-        if(diff_position > 5.0)
-        {
-          error_status = "position error";
-          is_error_ = true;
-        }
-
-        // check current error
         std::string sub_task = current_job_;
         if(is_start == true)
           sub_task = current_job_ + "_1";

@@ -115,6 +115,7 @@ public:
   void saveStatus(std::string joint_name, std::string error_status, robotis_framework::Dynamixel *dxl);
   void setTestCount(int count) {test_count_ = count;}
   bool checkError() {return is_error_;}
+  void clearError() {is_error_ = false;}
 
   const std::string currentDateTime();
 
