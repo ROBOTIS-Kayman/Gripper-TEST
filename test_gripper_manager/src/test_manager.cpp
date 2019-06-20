@@ -103,6 +103,8 @@ void TestManager::demoThread()
 
 
     case ON_STOP:
+      if(is_start_ == true)
+        is_start_ = false;
       break;
 
     case ON_STOP_DONE:
@@ -111,12 +113,14 @@ void TestManager::demoThread()
       break;
 
     case ON_RESUME:
+      start_time_ = ros::Time::now();
       current_process_ = ON_PLAY;
+
+      is_start_ = true;
       break;
 
     case ON_READY:
       start_time_ = ros::Time::now();
-      total_test_time_ = ros::Duration(0.0);
 
       job_sequency_.clear();
       job_sequency_.assign(test_sequency_.begin(), test_sequency_.end());
@@ -129,7 +133,6 @@ void TestManager::demoThread()
       current_job_index_ += 1;
       current_process_ = ON_PLAY;
       break;
-
 
     default:
       break;
@@ -157,33 +160,33 @@ void TestManager::demoThread()
           {
           case GRASP_ON:
             test_module_->graspGripper(true);
-            current_process_ = ON_WAIT;
             break;
 
           case GRASP_OFF:
             test_module_->graspGripper(false);
-            current_process_ = ON_WAIT;
             break;
 
           case WAIT:
             setTimer(3.0);
-//            ros::Duration(3.0).sleep();
-            current_process_ = ON_WAIT_DONE;
+            //            ros::Duration(3.0).sleep();
             break;
 
           case MOVE_UP:
             test_module_->moveUp();
-            current_process_ = ON_WAIT;
             break;
 
           case MOVE_DOWN:
             test_module_->moveDown();
-            current_process_ = ON_WAIT;
             break;
 
           default:
-            break;
+            ROS_WARN("Invalid Task");
+            current_process_ = ON_WAIT_DONE;
+            continue;
           }
+
+          // wait done.
+          current_process_ = ON_WAIT;
         }
         else    // end of cycle
         {
@@ -194,7 +197,7 @@ void TestManager::demoThread()
             test_count_ += 1;
             test_module_->setTestCount(test_count_);
             // publish test count
-            // ...
+            publishCount();
           }
           else  // "ready" or "start" command
           {
@@ -211,6 +214,9 @@ void TestManager::demoThread()
 
     // wait 0.1sec
     dur.sleep();
+
+    // publish testing time
+    publishTestTime();
   }
 }
 
@@ -239,6 +245,23 @@ void TestManager::publishStatusMsg(unsigned int type, std::string msg)
   status_msg.status_msg = msg;
 
   status_msg_pub_.publish(status_msg);
+}
+
+void TestManager::publishCount()
+{
+  std_msgs::Int32 test_count_msg;
+  test_count_msg.data = test_count_;
+
+  if(test_count_ > 0)
+    number_of_test_pub_.publish(test_count_msg);
+}
+
+void TestManager::publishTestTime()
+{
+  std_msgs::Duration total_test_time_msg;
+  total_test_time_msg.data = (ros::Time::now() - start_time_) + total_test_time_;
+
+  number_of_test_pub_.publish(total_test_time_msg);
 }
 
 void TestManager::demoCommandCallback(const std_msgs::String::ConstPtr &msg)
@@ -283,21 +306,36 @@ void TestManager::readyTest()
 void TestManager::startTest()
 {
   ROS_INFO("Start Testing");
+  total_test_time_ = ros::Duration(0.0);
   test_count_ = 1;
   current_job_index_ = 0;
+
 
   current_process_ = ON_START;
 }
 
 void TestManager::stopTest()
 {
+  if(is_start_ == false)
+  {
+    ROS_INFO("Alread stopped testing");
+    return;
+  }
+
   ROS_INFO("Stop Testing");
   current_process_ = ON_STOP;
   test_module_->clearError();
+  total_test_time_ = (ros::Time::now() - start_time_) + total_test_time_;
 }
 
 void TestManager::resumeTest()
 {
+  if(is_start_ == true)
+  {
+    ROS_INFO("Alread started testing.");
+    return;
+  }
+
   ROS_INFO("Resume Tesing");
   current_process_ = ON_RESUME;
 }

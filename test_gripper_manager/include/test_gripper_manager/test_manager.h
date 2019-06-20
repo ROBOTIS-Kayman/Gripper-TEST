@@ -70,6 +70,8 @@ public:
 
 private:
   void publishStatusMsg(unsigned int type, std::string msg);
+  void publishCount();
+  void publishTestTime();
   void demoCommandCallback(const std_msgs::String::ConstPtr &msg);
   void movementDoneCallback(const std_msgs::String::ConstPtr &msg);
   void demoThread();
