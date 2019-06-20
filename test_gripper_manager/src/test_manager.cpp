@@ -72,6 +72,7 @@ void TestManager::demoThread()
     switch (current_process_)
     {
     case ON_INIT:
+      is_ready_ = false;
       job_sequency_.clear();
       job_sequency_.assign(ready_sequency_.begin(), ready_sequency_.end());
       ROS_INFO("Job is set by being ready.");

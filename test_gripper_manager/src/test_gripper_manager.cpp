@@ -63,6 +63,8 @@ int main(int argc, char **argv)
 
     controller->startTimer();
 
+    usleep(100 * 1000);
+
     // test manager
     TestManager* test_manager = new TestManager();
     test_manager->test_module_ = TestGripperModule::getInstance();

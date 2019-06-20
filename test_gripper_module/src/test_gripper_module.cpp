@@ -41,8 +41,8 @@ TestGripperModule::TestGripperModule()
   joint_data_["joint_2"] = new JointStatus("joint_2");
   joint_data_["gripper"] = new JointStatus("gripper");
 
-  // set base current to check error
-  joint_data_["joint_1"]->base_current_ = 3000;
+  // set base current to check error : 5kg
+  joint_data_["joint_1"]->base_current_ = 1200; // 5kg : 3000;
   joint_data_["joint_1"]->check_current_task_ = "move_up_2, move_down_1";
   joint_data_["gripper"]->base_current_ = 600;
   joint_data_["gripper"]->check_current_task_ = "grasp_on_2, move_up_1, move_up_2, move_down_1, move_down_2, grasp_off_1";
@@ -199,7 +199,7 @@ void TestGripperModule::traGeneProcJointSpace()
   cnt_ = 0;
   is_moving_ = true;
 
-  ROS_INFO("[start] send trajectory");
+  ROS_INFO_STREAM("[ready] make trajectory : " << current_job_);
 }
 
 void TestGripperModule::setTorqueLimit()
@@ -225,7 +225,7 @@ bool TestGripperModule::setEndTrajectory()
   {
     if (cnt_ >= all_time_steps_)
     {
-      ROS_INFO("[end] send trajectory");
+      ROS_INFO_STREAM("[end] send trajectory : " << current_job_);
 
       publishStatusMsg(robotis_controller_msgs::StatusMsg::STATUS_INFO, "End Trajectory");
 
@@ -246,6 +246,7 @@ bool TestGripperModule::checkTrajectory()
   {
     if (cnt_ == 0)
     {
+      ROS_INFO_STREAM("[start] send trajectory : " << current_job_);
       publishStatusMsg(robotis_controller_msgs::StatusMsg::STATUS_INFO, "Start Trajectory");
       on_start = true;
     }
