@@ -319,6 +319,7 @@ void TestGripperModule::process(std::map<std::string, robotis_framework::Dynamix
   /*---------- Check Error and Save data ----------*/
   if(is_finished == true || is_start == true)
   {
+    is_error_ = false;
     int sub_index = is_start ? 1 : 2;
     // store data to save
     // loop dxl to find joints to check overload limit
@@ -327,40 +328,43 @@ void TestGripperModule::process(std::map<std::string, robotis_framework::Dynamix
       std::string joint_name = it.first;
       robotis_framework::Dynamixel* dxl = it.second;
 
-      std::string error_status = "none";
-      // check position error : above 5.0 deg
-      double diff_position = fabs(dxl->dxl_state_->goal_position_ - dxl->dxl_state_->present_position_) * 180.0 / M_PI;
-      if(diff_position > 5.0)
+      std::string error_status = "";
+      if(test_count_ > 0)
       {
-        error_status = "position error";
-        is_error_ = true;
-      }
-
-      // check current error
-      std::string sub_task = current_job_;
-      if(is_start == true)
-        sub_task = current_job_ + "_1";
-      if(is_finished == true)
-        sub_task = current_job_ + "_2";
-
-      JointStatus *joint_status = joint_data_[joint_name];
-      if(joint_status->check_current_task_.find(sub_task) != std::string::npos)
-      {
-        std::string present_current_name = dxl->present_current_item_->item_name_;
-        std::map<std::string, uint32_t>::iterator current_it = dxl->dxl_state_->bulk_read_table_.find(present_current_name);
-        if(current_it != dxl->dxl_state_->bulk_read_table_.end())
+        // check position error : above 5.0 deg
+        double diff_position = fabs(dxl->dxl_state_->goal_position_ - dxl->dxl_state_->present_position_) * 180.0 / M_PI;
+        if(diff_position > 5.0)
         {
-          uint16_t present_current_data = current_it->second;
-          int16_t present_current = present_current_data;
+          error_status = "position error";
+          is_error_ = true;
+        }
 
-          if(abs(present_current) < joint_status->base_current_)
+        // check current error
+        std::string sub_task = current_job_;
+        if(is_start == true)
+          sub_task = current_job_ + "_1";
+        if(is_finished == true)
+          sub_task = current_job_ + "_2";
+
+        JointStatus *joint_status = joint_data_[joint_name];
+        if(joint_status->check_current_task_.find(sub_task) != std::string::npos)
+        {
+          std::string present_current_name = dxl->present_current_item_->item_name_;
+          std::map<std::string, uint32_t>::iterator current_it = dxl->dxl_state_->bulk_read_table_.find(present_current_name);
+          if(current_it != dxl->dxl_state_->bulk_read_table_.end())
           {
-            if(is_error_ == true)
-              error_status = error_status + ", current error";
-            else
-              error_status = "current error";
+            uint16_t present_current_data = current_it->second;
+            int16_t present_current = present_current_data;
 
-            is_error_ = true;
+            if(abs(present_current) < joint_status->base_current_)
+            {
+              if(error_status != "")
+                error_status = error_status + "|current error";
+              else
+                error_status = "current error";
+
+              is_error_ = true;
+            }
           }
         }
       }

@@ -79,6 +79,7 @@ void TestManager::demoThread()
         ROS_INFO("Job is set by being ready.");
 
         current_process_ = ON_PLAY;
+        test_module_->setTestCount(-1);
       }
       else
       {
@@ -103,6 +104,7 @@ void TestManager::demoThread()
       job_sequency_.assign(test_sequency_.begin(), test_sequency_.end());
       current_process_ = ON_PLAY;
       ROS_INFO("Job is set by playing test.");
+      test_module_->setTestCount(test_count_);
       break;
 
     case ON_WAIT_DONE:
@@ -122,8 +124,16 @@ void TestManager::demoThread()
       // if not, is_wait
       if(current_process_ == ON_PLAY)
       {
-        if(current_job_index_ <= job_sequency_.size())
+        if(current_job_index_ < job_sequency_.size())
         {
+          // check error
+          if(test_module_->checkError() == true)
+          {
+            ROS_ERROR("Error occured!!!");
+            stopTest();
+            continue;
+          }
+
           // play current task
           switch(job_sequency_[current_job_index_])
           {
@@ -218,7 +228,7 @@ void TestManager::startManager()
 void TestManager::startTest()
 {
   ROS_INFO("Start Testing");
-  test_count_ = 0;
+  test_count_ = 1;
   current_job_index_ = 0;
 
   current_process_ = ON_START;
