@@ -1,0 +1,56 @@
+joint_1 :   # H54-200-S500-R(A)
+  return_delay_time     : 0   # item name : value
+  operating_mode        : 3
+  homing_offset         : 0
+  current_limit         : 22740
+  max_position_limit    : 125358    #45 deg, default : 501433(180 deg)
+  min_position_limit    : -125358   #-45 deg, default : -501433(-180 deg)
+  shutdown              : 52
+  velocity_i_gain       : 2209
+  velocity_p_gain       : 6153
+  position_d_gain       : 0
+  position_i_gain       : 0
+  position_p_gain       : 314
+  feedforward_2nd_gain  : 0
+  feedforward_1st_gain  : 0
+  goal_current          : 22740
+  profile_acceleration  : 0     #default : 9982
+  profile_velocity      : 0     #default : 2900
+
+joint_2 :   # H54-100-S500-R(A)
+  return_delay_time     : 0   # item name : value
+  operating_mode        : 3
+  homing_offset         : 0
+  current_limit         : 15900
+  max_position_limit    : 250961    #90 deg, default : 501433(180 deg)
+  min_position_limit    : 0         #0 deg, default : -501433(-180 deg)
+  shutdown              : 52
+  velocity_i_gain       : 1290
+  velocity_p_gain       : 3593
+  position_d_gain       : 0
+  position_i_gain       : 0
+  position_p_gain       : 502
+  feedforward_2nd_gain  : 0
+  feedforward_1st_gain  : 0
+  goal_current          : 15900
+  profile_acceleration  : 0
+  profile_velocity      : 0
+
+gripper :   # RH-P12-RN(A)
+  return_delay_time     : 0   # item name : value
+  operating_mode        : 5
+  homing_offset         : 0
+  current_limit         : 661
+  max_position_limit    : 1150
+  min_position_limit    : 0
+  shutdown              : 52
+  velocity_i_gain       : 0
+  velocity_p_gain       : 300
+  position_d_gain       : 0
+  position_i_gain       : 0
+  position_p_gain       : 193
+  feedforward_2nd_gain  : 0
+  feedforward_1st_gain  : 0
+  goal_current          : 661
+  profile_acceleration  : 0
+  profile_velocity      : 0

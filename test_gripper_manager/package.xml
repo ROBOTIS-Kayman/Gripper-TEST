@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>test_gripper_manager</name>
+  <version>0.1.1</version>
+  <description>
+    test_gripper_manager
+  </description>
+  <license>Apache 2.0</license>
+  <author email="kmjung@robotis.com">Kayman</author>
+  <maintainer email="kmjung@robotis.com">Kayman</maintainer>
+  <buildtool_depend>catkin</buildtool_depend>
+  <depend>roscpp</depend>
+  <depend>robotis_controller_msgs</depend>
+  <depend>cmake_modules</depend>
+  <depend>dynamixel_sdk</depend>
+  <depend>robotis_framework_common</depend>
+  <depend>robotis_device</depend>
+  <depend>robotis_controller</depend>
+  <depend>robotis_math</depend>
+  <depend>test_gripper_module</depend>
+  <depend>yaml-cpp</depend>
+</package>
