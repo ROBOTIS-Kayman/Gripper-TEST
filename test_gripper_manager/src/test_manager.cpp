@@ -322,6 +322,12 @@ void TestManager::startManager()
 
 void TestManager::readyTest()
 {
+  if(is_start_ == true)
+  {
+    ROS_INFO("Alread started testing.");
+    return;
+  }
+
   ROS_INFO("Reagy Testing");
   test_count_ = -1;
   current_job_index_ = 0;
