@@ -8,6 +8,9 @@
     <!-- TEST-Gripper Manager -->
     <node name="test_gripper_manager" pkg="test_gripper_manager" type="test_gripper_manager" output="screen"/>
     
+    <!-- TEST-Gripper GUI -->
+    <node name="test_gripper_gui" pkg="test_gripper_gui" type="test_gripper_gui" output="screen"/>
+    
     <!-- Robot Model & TF -->
 <!--    <include file="$(find thormang3_description)/launch/thormang3_mpc.launch"/> -->
 </launch>
