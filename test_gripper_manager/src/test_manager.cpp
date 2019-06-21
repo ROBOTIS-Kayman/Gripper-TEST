@@ -340,6 +340,7 @@ void TestManager::startTest()
   ROS_INFO("Start Testing");
   total_test_time_ = ros::Duration(0.0);
   test_count_ = 1;
+  test_module_->setDataFileName("");
   current_job_index_ = 0;
 
   current_process_ = ON_START;
