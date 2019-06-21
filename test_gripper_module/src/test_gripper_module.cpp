@@ -229,7 +229,7 @@ bool TestGripperModule::setEndTrajectory()
     {
       ROS_INFO_STREAM("[end] send trajectory : " << current_job_);
 
-      publishStatusMsg(robotis_controller_msgs::StatusMsg::STATUS_INFO, "End Trajectory");
+      publishStatusMsg(robotis_controller_msgs::StatusMsg::STATUS_INFO, "End Trajectory : " + current_job_);
 
       is_moving_ = false;
       cnt_ = 0;
@@ -249,7 +249,7 @@ bool TestGripperModule::checkTrajectory()
     if (cnt_ == 0)
     {
       ROS_INFO_STREAM("[start] send trajectory : " << current_job_);
-      publishStatusMsg(robotis_controller_msgs::StatusMsg::STATUS_INFO, "Start Trajectory");
+      publishStatusMsg(robotis_controller_msgs::StatusMsg::STATUS_INFO, "Start Trajectory : " + current_job_);
       on_start = true;
     }
 
@@ -547,6 +547,7 @@ void TestGripperModule::saveData(bool on_start, int sub_index)
 
   data_file.close();
   ROS_INFO_STREAM("Saved : " << data_file_name_);
+  publishStatusMsg(robotis_controller_msgs::StatusMsg::STATUS_INFO, "Saved the monitoring data.");
 }
 
 const std::string TestGripperModule::currentDateTime()

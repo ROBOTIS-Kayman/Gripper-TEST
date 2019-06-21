@@ -15,7 +15,7 @@
 - test_gripper_gui
 ![](./gripper_test.png)
 
-## Data path
+## Data files
 - monitoring data : test_gripper_module/data/DATE.csv
 - test data : test_gripper_module/data/prev_test.yaml
 
