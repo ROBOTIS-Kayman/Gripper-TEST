@@ -67,7 +67,7 @@ public:
   void stopTest();
   void startContinueTest();
   void resumeTest();
-  bool getPrevTestData();
+  bool getPrevTestData(std::string &save_path, int &test_count, double &test_time);
   void savePrevTestData();
 
   TestGripperModule* test_module_;

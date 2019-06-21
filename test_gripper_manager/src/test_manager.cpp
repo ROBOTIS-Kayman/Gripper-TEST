@@ -380,7 +380,11 @@ void TestManager::startContinueTest()
 
   ROS_INFO("Start Testing continue");
 
-  bool result = getPrevTestData();
+  std::string save_path;
+  int test_count = 0;
+  double test_time = 0.0;
+
+  bool result = getPrevTestData(save_path, test_count, test_time);
   if(result == false)
   {
     ROS_WARN("It can not be started continue. It will start in first.");
@@ -388,13 +392,19 @@ void TestManager::startContinueTest()
     total_test_time_ = ros::Duration(0.0);
     test_count_ = 1;
   }
+  else
+  {
+    test_module_->setDataFileName(save_path);
+    test_count_ = test_count;
+    total_test_time_ = ros::Duration(test_time);
+  }
 
   current_job_index_ = 0;
 
   current_process_ = ON_START;
 }
 
-bool TestManager::getPrevTestData()
+bool TestManager::getPrevTestData(std::string &save_path, int &test_count, double &test_time)
 {
   std::string file_name = test_module_->getDataFilePath() + "prev_test.yaml";
 
@@ -406,10 +416,9 @@ bool TestManager::getPrevTestData()
     doc = YAML::LoadFile(file_name.c_str());
 
     // get filename, count, time
-    std::string file_name = doc["save_file"].as<std::string>();
-    test_count_ = doc["test_count"].as<int>();
-    double test_time = doc["test_time"].as<double>();
-    total_test_time_ = ros::Duration(test_time);
+    save_path = doc["save_file"].as<std::string>();
+    test_count = doc["test_count"].as<int>();
+    test_time = doc["test_time"].as<double>();
   }
   catch (const std::exception& e)
   {
