@@ -1,0 +1,6 @@
+<launch>
+  <param name="parameter_path" value="$(find robotis_catering_support_gui)/config/parameter.yaml"/>
+
+  <node pkg="robotis_catering_support_gui" type="robotis_catering_support_gui" name="robotis_catering_support_gui" output="screen">
+  </node>
+</launch>

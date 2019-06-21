@@ -155,6 +155,13 @@ void TestManager::demoThread()
             continue;
           }
 
+          // publish test_count in first
+          if(is_ready_ == true && current_job_index_ == 0)
+          {
+            // publish test count
+            publishCount();
+          }
+
           // play current task
           switch(job_sequency_[current_job_index_])
           {
