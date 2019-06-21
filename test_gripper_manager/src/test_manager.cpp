@@ -201,6 +201,10 @@ void TestManager::demoThread()
 
           if(is_ready_ == true)
           {
+            // changed save file name per 1000 times
+            if(test_count_ % 1000 == 0)
+              test_module_->setDataFileName("");
+
             test_count_ += 1;
             test_module_->setTestCount(test_count_);
             // publish test count
