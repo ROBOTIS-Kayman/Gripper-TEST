@@ -54,6 +54,7 @@ Q_SIGNALS:
   void log(const std::string& message);
   void updateTestTime(const std::string &time);
   void updateTestCount(int count);
+  void clearSetEndTest();
 
 private:
   int init_argc_;

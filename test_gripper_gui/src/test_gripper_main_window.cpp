@@ -32,6 +32,7 @@ TestGripperMainWindow::TestGripperMainWindow(int argc, char** argv, QWidget *par
   QObject::connect(q_node_, SIGNAL(log(std::string)), this, SLOT(logToStatusBar(std::string)));
   QObject::connect(q_node_, SIGNAL(updateTestTime(std::string)), this, SLOT(updateTestTime(std::string)));
   QObject::connect(q_node_, SIGNAL(updateTestCount(int)), this, SLOT(updateTestCount(int)));
+  QObject::connect(q_node_, SIGNAL(clearSetEndTest()), this, SLOT(clearSetEndTest()));
 
   readSettings();
 
@@ -122,6 +123,11 @@ void TestGripperMainWindow::updateTestCount(int count)
   QString q_string_count = QString::number(count);
 
   ui_->lcdNumber_test_count->display(q_string_count);
+}
+
+void TestGripperMainWindow::clearSetEndTest()
+{
+  ui_->checkBox_set_stop_count->stateChanged(Qt::Unchecked);
 }
 
 void TestGripperMainWindow::logToStatusBar(const std::string& message)

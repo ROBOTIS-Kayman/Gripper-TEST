@@ -64,6 +64,7 @@ public Q_SLOTS:
 
   void updateTestTime(const std::string &time);
   void updateTestCount(int count);
+  void clearSetEndTest();
 
 private:
 //  void updateRobotUI();
