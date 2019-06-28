@@ -58,6 +58,8 @@ public Q_SLOTS:
   void on_pushButton_stop_clicked(bool clicked);
   void on_pushButton_e_stop_clicked(bool clicked);
 
+  void on_checkBox_set_stop_count_stateChanged(int state);
+
   void logToStatusBar(const std::string& message);
 
   void updateTestTime(const std::string &time);

@@ -75,6 +75,20 @@ void TestGripperMainWindow::on_pushButton_e_stop_clicked(bool clicked)
   q_node_->sendCommand("stop");
 }
 
+void TestGripperMainWindow::on_checkBox_set_stop_count_stateChanged(int state)
+{
+  if(state == Qt::Unchecked)
+  {
+    ui_->spinBox_stop_count->setReadOnly(false);
+    q_node_->setEndCount(false, 0);
+  }
+  else if(state == Qt::Checked)
+  {
+    ui_->spinBox_stop_count->setReadOnly(true);
+    q_node_->setEndCount(true, ui_->spinBox_stop_count->value());
+  }
+}
+
 void TestGripperMainWindow::readSettings()
 {
   QSettings settings("Qt-Ros Package", "test_gripper_gui");
@@ -117,3 +131,4 @@ void TestGripperMainWindow::logToStatusBar(const std::string& message)
 }
 
 }
+
