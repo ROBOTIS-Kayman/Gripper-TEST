@@ -127,7 +127,7 @@ void TestGripperMainWindow::updateTestCount(int count)
 
 void TestGripperMainWindow::clearSetEndTest()
 {
-  ui_->checkBox_set_stop_count->stateChanged(Qt::Unchecked);
+  ui_->checkBox_set_stop_count->click();
 }
 
 void TestGripperMainWindow::logToStatusBar(const std::string& message)
