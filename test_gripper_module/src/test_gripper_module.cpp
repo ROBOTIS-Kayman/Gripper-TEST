@@ -167,18 +167,18 @@ void TestGripperModule::traGeneProcJointSpace()
   goal_joint_tra_.resize(all_time_steps_, result_.size() + 1);
 
   /* calculate joint trajectory */
-  for (int dim = 0; dim < result_.size(); dim++)
-  {
-    double ini_value = goal_joint_position_(dim);
-    double tar_value = goal_joint_position_(dim);
+//  for (int dim = 0; dim < result_.size(); dim++)
+//  {
+//    double ini_value = goal_joint_position_(dim);
+//    double tar_value = goal_joint_position_(dim);
 
-    Eigen::MatrixXd tra =
-        robotis_framework::calcMinimumJerkTra(ini_value, 0.0, 0.0,
-                                              tar_value , 0.0 , 0.0 ,
-                                              control_cycle_sec_, mov_time_);
+//    Eigen::MatrixXd tra =
+//        robotis_framework::calcMinimumJerkTra(ini_value, 0.0, 0.0,
+//                                              tar_value , 0.0 , 0.0 ,
+//                                              control_cycle_sec_, mov_time_);
 
-    goal_joint_tra_.block(0, dim, all_time_steps_, 1) = tra;
-  }
+//    goal_joint_tra_.block(0, dim, all_time_steps_, 1) = tra;
+//  }
 
   //for (int dim = 0; dim < goal_joint_pose_msg_.name.size(); dim++)
   for(std::map<std::string, double>::iterator goal_it = goal_joint_pose_.begin(); goal_it != goal_joint_pose_.end(); ++goal_it)
@@ -266,8 +266,8 @@ bool TestGripperModule::checkTrajectory()
 void TestGripperModule::process(std::map<std::string, robotis_framework::Dynamixel *> dxls,
                                 std::map<std::string, double> sensors)
 {
-  if (enable_ == false)
-    return;
+//  if (enable_ == false)
+//    return;
 
   /*----- Get Joint Data & Sensor Data-----*/
   for (std::map<std::string, robotis_framework::DynamixelState *>::iterator state_iter = result_.begin();
@@ -290,6 +290,9 @@ void TestGripperModule::process(std::map<std::string, robotis_framework::Dynamix
 
     //    saveStatus(joint_name, current_job_, dxl);
   }
+
+  if (enable_ == false)
+    return;
 
   /* ----- Movement Event -----*/
   bool is_start = checkTrajectory();
