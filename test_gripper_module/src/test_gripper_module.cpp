@@ -167,6 +167,27 @@ void TestGripperModule::traGeneProcJointSpace()
   goal_joint_tra_.resize(all_time_steps_, result_.size() + 1);
 
   /* calculate joint trajectory */
+  for(std::map<std::string, robotis_framework::DynamixelState *>::iterator result_it = result_.begin(); result_it != result_.end(); ++result_it)
+  {
+    //std::string joint_name = goal_joint_pose_msg_.name[dim];
+    std::string joint_name = result_it->first;
+    int id = joint_name_to_id_[joint_name];
+
+    double ini_value = goal_joint_position_(id);
+    double tar_value = goal_joint_position_(id);
+
+    std::map<std::string, double>::iterator goal_it = goal_joint_pose_.find(joint_name);
+    if(goal_it != goal_joint_pose_.end())
+      tar_value = goal_it->second;
+
+    Eigen::MatrixXd tra =
+        robotis_framework::calcMinimumJerkTra(ini_value, 0.0, 0.0,
+                                              tar_value , 0.0 , 0.0 ,
+                                              control_cycle_sec_, mov_time_);
+
+    goal_joint_tra_.block(0, id, all_time_steps_, 1) = tra;
+  }
+
 //  for (int dim = 0; dim < result_.size(); dim++)
 //  {
 //    double ini_value = goal_joint_position_(dim);
@@ -180,23 +201,23 @@ void TestGripperModule::traGeneProcJointSpace()
 //    goal_joint_tra_.block(0, dim, all_time_steps_, 1) = tra;
 //  }
 
-  //for (int dim = 0; dim < goal_joint_pose_msg_.name.size(); dim++)
-  for(std::map<std::string, double>::iterator goal_it = goal_joint_pose_.begin(); goal_it != goal_joint_pose_.end(); ++goal_it)
-  {
-    //std::string joint_name = goal_joint_pose_msg_.name[dim];
-    std::string joint_name = goal_it->first;
-    int id = joint_name_to_id_[joint_name];
+//  //for (int dim = 0; dim < goal_joint_pose_msg_.name.size(); dim++)
+//  for(std::map<std::string, double>::iterator goal_it = goal_joint_pose_.begin(); goal_it != goal_joint_pose_.end(); ++goal_it)
+//  {
+//    //std::string joint_name = goal_joint_pose_msg_.name[dim];
+//    std::string joint_name = goal_it->first;
+//    int id = joint_name_to_id_[joint_name];
 
-    double ini_value = goal_joint_position_(id);
-    double tar_value = goal_it->second;
+//    double ini_value = goal_joint_position_(id);
+//    double tar_value = goal_it->second;
 
-    Eigen::MatrixXd tra =
-        robotis_framework::calcMinimumJerkTra(ini_value, 0.0, 0.0,
-                                              tar_value , 0.0 , 0.0 ,
-                                              control_cycle_sec_, mov_time_);
+//    Eigen::MatrixXd tra =
+//        robotis_framework::calcMinimumJerkTra(ini_value, 0.0, 0.0,
+//                                              tar_value , 0.0 , 0.0 ,
+//                                              control_cycle_sec_, mov_time_);
 
-    goal_joint_tra_.block(0, id, all_time_steps_, 1) = tra;
-  }
+//    goal_joint_tra_.block(0, id, all_time_steps_, 1) = tra;
+//  }
 
   cnt_ = 0;
   is_moving_ = true;
@@ -266,8 +287,8 @@ bool TestGripperModule::checkTrajectory()
 void TestGripperModule::process(std::map<std::string, robotis_framework::Dynamixel *> dxls,
                                 std::map<std::string, double> sensors)
 {
-//  if (enable_ == false)
-//    return;
+  if (enable_ == false)
+    return;
 
   /*----- Get Joint Data & Sensor Data-----*/
   for (std::map<std::string, robotis_framework::DynamixelState *>::iterator state_iter = result_.begin();
@@ -291,22 +312,8 @@ void TestGripperModule::process(std::map<std::string, robotis_framework::Dynamix
     //    saveStatus(joint_name, current_job_, dxl);
   }
 
-  if (enable_ == false)
-    return;
-
   /* ----- Movement Event -----*/
   bool is_start = checkTrajectory();
-  //  if(is_start == true)
-  //  {
-  //    for (auto& it : dxls)
-  //    {
-  //      std::string joint_name = it.first;
-  //      robotis_framework::Dynamixel* dxl = it.second;
-
-  //      saveStatus(joint_name, current_job_, dxl);
-  //    }
-  //    saveData(false);
-  //  }
 
   /* ---- Send Goal Joint Data -----*/
   for (std::map<std::string, robotis_framework::DynamixelState *>::iterator state_iter = result_.begin();
