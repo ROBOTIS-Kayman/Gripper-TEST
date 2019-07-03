@@ -21,7 +21,9 @@ namespace test_gripper_gui {
 
 QNodeTestGriper::QNodeTestGriper(int argc, char** argv)
   : init_argc_(argc),
-    init_argv_(argv)
+    init_argv_(argv),
+    set_end_count_(false),
+    end_test_count_(0)
 {
 
 }
@@ -94,6 +96,18 @@ void QNodeTestGriper::testCountCallback(const std_msgs::Int32::ConstPtr &msg)
 {
   // store test count
   test_count_ = msg->data;
+
+  // check to set end count
+  if(set_end_count_ == true && test_count_ == (end_test_count_ - 1))
+  {
+    // stop next round
+    sendCommand("stop_end");
+  }
+
+  if(set_end_count_ == true && test_count_ == end_test_count_)
+  {
+    Q_EMIT clearSetEndTest();
+  }
 
   // update ui
   Q_EMIT updateTestCount(test_count_);

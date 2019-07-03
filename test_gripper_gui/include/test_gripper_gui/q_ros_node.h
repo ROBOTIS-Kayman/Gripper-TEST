@@ -44,15 +44,7 @@ public:
   bool init();
   void run();
   void sendCommand(const std::string &command);
-//  void navigationMsgCallback(const geometry_msgs::PoseStamped::ConstPtr &msg);
-//  void initialPoseMsgCallback(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr &msg);
-//  const std::map<int, std::string>& getParameters() { return robot_list_; }
-//  const std::map<std::string, geometry_msgs::Pose2D>& getStartPositionList() { return start_list_; }
-//  const std::map<std::string, geometry_msgs::Pose2D>& getGoalPositionList() { return goal_list_; }
-//  void visualizePositionMarker(int type, bool clear = false);
-//  bool saveCurrentPosition(int type, const std::string& saved_name);
-//  bool deleteCurrentPosition(int type, const std::string& saved_name);
-//  void publishNavMsg(int type, const std::string goal_name);
+  void setEndCount(bool is_set, int end_count) {set_end_count_ = is_set; end_test_count_ = end_count; }
 
 public Q_SLOTS:
 //  void changeControlRobot(int index);
@@ -62,6 +54,7 @@ Q_SIGNALS:
   void log(const std::string& message);
   void updateTestTime(const std::string &time);
   void updateTestCount(int count);
+  void clearSetEndTest();
 
 private:
   int init_argc_;
@@ -69,6 +62,8 @@ private:
 
   int test_count_;
   ros::Duration test_time_;
+  bool set_end_count_;
+  int end_test_count_;
 
   ros::Publisher test_command_pub_;
   ros::Subscriber test_count_sub_;

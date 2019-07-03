@@ -32,6 +32,7 @@ TestGripperMainWindow::TestGripperMainWindow(int argc, char** argv, QWidget *par
   QObject::connect(q_node_, SIGNAL(log(std::string)), this, SLOT(logToStatusBar(std::string)));
   QObject::connect(q_node_, SIGNAL(updateTestTime(std::string)), this, SLOT(updateTestTime(std::string)));
   QObject::connect(q_node_, SIGNAL(updateTestCount(int)), this, SLOT(updateTestCount(int)));
+  QObject::connect(q_node_, SIGNAL(clearSetEndTest()), this, SLOT(clearSetEndTest()));
 
   readSettings();
 
@@ -75,6 +76,20 @@ void TestGripperMainWindow::on_pushButton_e_stop_clicked(bool clicked)
   q_node_->sendCommand("stop");
 }
 
+void TestGripperMainWindow::on_checkBox_set_stop_count_stateChanged(int state)
+{
+  if(state == Qt::Unchecked)
+  {
+    ui_->spinBox_stop_count->setReadOnly(false);
+    q_node_->setEndCount(false, 0);
+  }
+  else if(state == Qt::Checked)
+  {
+    ui_->spinBox_stop_count->setReadOnly(true);
+    q_node_->setEndCount(true, ui_->spinBox_stop_count->value());
+  }
+}
+
 void TestGripperMainWindow::readSettings()
 {
   QSettings settings("Qt-Ros Package", "test_gripper_gui");
@@ -110,6 +125,11 @@ void TestGripperMainWindow::updateTestCount(int count)
   ui_->lcdNumber_test_count->display(q_string_count);
 }
 
+void TestGripperMainWindow::clearSetEndTest()
+{
+  ui_->checkBox_set_stop_count->click();
+}
+
 void TestGripperMainWindow::logToStatusBar(const std::string& message)
 {
   QString q_message = QString::fromStdString(message);
@@ -117,3 +137,4 @@ void TestGripperMainWindow::logToStatusBar(const std::string& message)
 }
 
 }
+
