@@ -344,9 +344,28 @@ void TestManager::startTest()
   }
 
   ROS_INFO("Start Testing");
-  total_test_time_ = ros::Duration(0.0);
-  test_count_ = 1;
-  test_module_->setDataFileName("");
+
+  // check to exist the saved file.
+  std::string save_path;
+  int test_count = 0;
+  double test_time = 0.0;
+
+  bool result = getPrevTestData(save_path, test_count, test_time);
+  if(result == false)
+  {
+    test_module_->setDataFileName("");
+    total_test_time_ = ros::Duration(0.0);
+    test_count_ = 1;
+  }
+  else
+  {
+    ROS_WARN("The saved file is found. Test will be continued.");
+
+    test_module_->setDataFileName(save_path);
+    test_count_ = test_count;
+    total_test_time_ = ros::Duration(test_time);
+  }
+
   current_job_index_ = 0;
 
   current_process_ = ON_START;
