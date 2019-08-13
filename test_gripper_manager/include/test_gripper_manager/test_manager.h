@@ -43,7 +43,8 @@ public:
     MOVE_DOWN = 4,
     GRASP_OFF = 5,
     MOVE_UP_TO_LOADCELL = 6,
-    GET_LOADCELL = 7
+    GRASP_ON_LOADCELL = 7,
+    GET_LOADCELL = 8
   };
 
   enum PROCESS_INDEX

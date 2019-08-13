@@ -38,7 +38,7 @@ TestManager::TestManager()
   test_sequency_.push_back(GRASP_OFF);
 
   test_loadcell_sequency_.push_back(MOVE_UP_TO_LOADCELL);
-  test_loadcell_sequency_.push_back(GRASP_ON);
+  test_loadcell_sequency_.push_back(GRASP_ON_LOADCELL);
   test_loadcell_sequency_.push_back(GET_LOADCELL);
   test_loadcell_sequency_.push_back(GRASP_OFF);
   test_loadcell_sequency_.push_back(MOVE_DOWN);
@@ -178,6 +178,10 @@ void TestManager::demoThread()
 
           case GRASP_OFF:
             test_module_->graspGripper(false);
+            break;
+
+          case GRASP_ON_LOADCELL:
+            test_module_->graspGripper("grasp_on_loadcell");
             break;
 
           case WAIT:

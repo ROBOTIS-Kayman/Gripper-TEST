@@ -79,6 +79,11 @@ TestGripperModule::TestGripperModule()
   up2_joint_value_["joint_2"] = -75.0;
   up2_joint_value_["gripper"] = 0.0;    // off
 
+  // gripper
+  gripper_value_["grasp_on"] = 66.0;
+  gripper_value_["grasp_off"] = 0.0;
+  gripper_value_["grasp_on_loadcell"] = 60.0;
+
   /* ----- parameter initialization ----- */
   present_joint_position_ = Eigen::VectorXd::Zero(result_.size());
   present_joint_velocity_ = Eigen::VectorXd::Zero(result_.size());
@@ -211,36 +216,36 @@ void TestGripperModule::traGeneProcJointSpace()
     goal_joint_tra_.block(0, id, all_time_steps_, 1) = tra;
   }
 
-//  for (int dim = 0; dim < result_.size(); dim++)
-//  {
-//    double ini_value = goal_joint_position_(dim);
-//    double tar_value = goal_joint_position_(dim);
+  //  for (int dim = 0; dim < result_.size(); dim++)
+  //  {
+  //    double ini_value = goal_joint_position_(dim);
+  //    double tar_value = goal_joint_position_(dim);
 
-//    Eigen::MatrixXd tra =
-//        robotis_framework::calcMinimumJerkTra(ini_value, 0.0, 0.0,
-//                                              tar_value , 0.0 , 0.0 ,
-//                                              control_cycle_sec_, mov_time_);
+  //    Eigen::MatrixXd tra =
+  //        robotis_framework::calcMinimumJerkTra(ini_value, 0.0, 0.0,
+  //                                              tar_value , 0.0 , 0.0 ,
+  //                                              control_cycle_sec_, mov_time_);
 
-//    goal_joint_tra_.block(0, dim, all_time_steps_, 1) = tra;
-//  }
+  //    goal_joint_tra_.block(0, dim, all_time_steps_, 1) = tra;
+  //  }
 
-//  //for (int dim = 0; dim < goal_joint_pose_msg_.name.size(); dim++)
-//  for(std::map<std::string, double>::iterator goal_it = goal_joint_pose_.begin(); goal_it != goal_joint_pose_.end(); ++goal_it)
-//  {
-//    //std::string joint_name = goal_joint_pose_msg_.name[dim];
-//    std::string joint_name = goal_it->first;
-//    int id = joint_name_to_id_[joint_name];
+  //  //for (int dim = 0; dim < goal_joint_pose_msg_.name.size(); dim++)
+  //  for(std::map<std::string, double>::iterator goal_it = goal_joint_pose_.begin(); goal_it != goal_joint_pose_.end(); ++goal_it)
+  //  {
+  //    //std::string joint_name = goal_joint_pose_msg_.name[dim];
+  //    std::string joint_name = goal_it->first;
+  //    int id = joint_name_to_id_[joint_name];
 
-//    double ini_value = goal_joint_position_(id);
-//    double tar_value = goal_it->second;
+  //    double ini_value = goal_joint_position_(id);
+  //    double tar_value = goal_it->second;
 
-//    Eigen::MatrixXd tra =
-//        robotis_framework::calcMinimumJerkTra(ini_value, 0.0, 0.0,
-//                                              tar_value , 0.0 , 0.0 ,
-//                                              control_cycle_sec_, mov_time_);
+  //    Eigen::MatrixXd tra =
+  //        robotis_framework::calcMinimumJerkTra(ini_value, 0.0, 0.0,
+  //                                              tar_value , 0.0 , 0.0 ,
+  //                                              control_cycle_sec_, mov_time_);
 
-//    goal_joint_tra_.block(0, id, all_time_steps_, 1) = tra;
-//  }
+  //    goal_joint_tra_.block(0, id, all_time_steps_, 1) = tra;
+  //  }
 
   cnt_ = 0;
   is_moving_ = true;
@@ -558,13 +563,33 @@ void TestGripperModule::graspGripper(bool is_on)
     current_job_ = "grasp_on";
 
     goal_joint_pose_.clear();
-    goal_joint_pose_["gripper"] = up_joint_value_["gripper"] * M_PI / 180.0;
+    goal_joint_pose_["gripper"] = gripper_value_["grasp_on"] * M_PI / 180.0;
   }
   else
   {
     current_job_ = "grasp_off";
-    goal_joint_pose_["gripper"] = down_joint_value_["gripper"] * M_PI / 180.0;
+    goal_joint_pose_["gripper"] = gripper_value_["grasp_off"] * M_PI / 180.0;
   }
+
+  tra_gene_tread_ = new boost::thread(boost::bind(&TestGripperModule::traGeneProcJointSpace, this));
+  delete tra_gene_tread_;
+}
+
+void TestGripperModule::graspGripper(const std::string &type)
+{
+  if(is_moving_ == true)
+  {
+    ROS_ERROR_STREAM("It's busy now, try again. : " << current_job_);
+    return;
+  }
+
+  if(gripper_value_.find(type) == gripper_value_.end())
+    return;
+
+  current_job_ = type;
+
+  goal_joint_pose_.clear();
+  goal_joint_pose_["gripper"] = gripper_value_[type] * M_PI / 180.0;
 
   tra_gene_tread_ = new boost::thread(boost::bind(&TestGripperModule::traGeneProcJointSpace, this));
   delete tra_gene_tread_;
@@ -616,7 +641,7 @@ const std::string TestGripperModule::currentDateTime()
   struct tm  tstruct;
   char       buf[80];
   tstruct = *localtime(&now);
-//  strftime(buf, sizeof(buf), "%Y-%m-%d.%X", &tstruct); // YYYY-MM-DD.HH:mm:ss
+  //  strftime(buf, sizeof(buf), "%Y-%m-%d.%X", &tstruct); // YYYY-MM-DD.HH:mm:ss
   strftime(buf, sizeof(buf), "%Y-%m-%d.%H-%M-%S", &tstruct); // YYYY-MM-DD.HH-mm-ss
 
   return buf;

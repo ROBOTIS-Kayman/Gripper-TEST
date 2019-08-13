@@ -120,6 +120,7 @@ public:
   void moveUpToLoadcell();
   void moveDown();
   void graspGripper(bool is_on);
+  void graspGripper(const std::string &type);
   void saveData(bool on_start, int sub_index);
   void saveStatus(std::string joint_name, std::string error_status, robotis_framework::Dynamixel *dxl);
   void setTestCount(int count) {test_count_ = count;}
@@ -135,6 +136,7 @@ public:
   std::map<std::string, double> down_joint_value_;
   std::map<std::string, double> up_joint_value_;
   std::map<std::string, double> up2_joint_value_;
+  std::map<std::string, double> gripper_value_;
   std::map<std::string, double> goal_joint_pose_;
   std::map<std::string, JointStatus*> joint_data_;
   std::string current_job_;
