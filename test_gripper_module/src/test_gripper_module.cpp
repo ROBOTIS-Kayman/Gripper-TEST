@@ -77,7 +77,8 @@ TestGripperModule::TestGripperModule()
   // loadcell
   up2_joint_value_["joint_1"] = 30.0;
   up2_joint_value_["joint_2"] = -75.0;
-  up2_joint_value_["gripper"] = 0.0;    // off
+  down2_joint_value_["joint_1"] = 30.0;
+  down2_joint_value_["joint_2"] = 15.0;
 
   // gripper
   gripper_value_["grasp_on"] = 66.0;
@@ -147,13 +148,13 @@ void TestGripperModule::setMode()
 
 void TestGripperModule::loadcellStateCallback(const loadcell_idc::LoadCellState::ConstPtr &msg)
 {
-  if(get_loadcell_ == false)
-    return;
+//  if(get_loadcell_ == false)
+//    return;
 
   if(msg->state == loadcell_idc::LoadCellState::STABLE)
   {
     loadcell_state_ = *msg;
-    get_loadcell_ = false;
+//    get_loadcell_ = false;
   }
 }
 
@@ -496,6 +497,12 @@ void TestGripperModule::handleCommand(const std::string &command)
   }
 }
 
+void TestGripperModule::getLoadcell()
+{
+  current_job_ = "loadcell";
+  saveData(false, 0);
+}
+
 void TestGripperModule::moveUp()
 {
   if(is_moving_ == true)
@@ -545,6 +552,24 @@ void TestGripperModule::moveDown()
   goal_joint_pose_.clear();
   goal_joint_pose_["joint_1"] = down_joint_value_["joint_1"] * M_PI / 180.0;
   goal_joint_pose_["joint_2"] = down_joint_value_["joint_2"] * M_PI / 180.0;
+
+  tra_gene_tread_ = new boost::thread(boost::bind(&TestGripperModule::traGeneProcJointSpace, this));
+  delete tra_gene_tread_;
+}
+
+void TestGripperModule::moveDownFromLoadcell()
+{
+  if(is_moving_ == true)
+  {
+    ROS_ERROR_STREAM("It's busy now, try again. : " << current_job_);
+    return;
+  }
+
+  current_job_ = "move_down2";
+
+  goal_joint_pose_.clear();
+  goal_joint_pose_["joint_1"] = down2_joint_value_["joint_1"] * M_PI / 180.0;
+  goal_joint_pose_["joint_2"] = down2_joint_value_["joint_2"] * M_PI / 180.0;
 
   tra_gene_tread_ = new boost::thread(boost::bind(&TestGripperModule::traGeneProcJointSpace, this));
   delete tra_gene_tread_;

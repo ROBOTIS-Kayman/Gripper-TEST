@@ -190,8 +190,8 @@ void TestManager::demoThread()
             break;
 
           case GET_LOADCELL:
-            test_module_->getLoadcell();
             setTimer(2.0);
+            test_module_->getLoadcell();
             break;
 
           case MOVE_UP:
@@ -204,6 +204,10 @@ void TestManager::demoThread()
 
           case MOVE_DOWN:
             test_module_->moveDown();
+            break;
+
+          case MOVE_DOWN_FROM_LOADCELL:
+            test_module_->moveDownFromLoadcell();
             break;
 
           default:

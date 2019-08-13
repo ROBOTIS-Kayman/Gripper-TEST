@@ -115,10 +115,11 @@ public:
   void publishStatusMsg(unsigned int type, std::string msg);
 
   void handleCommand(const std::string &command);
-  void getLoadcell() {get_loadcell_ = true;}
+  void getLoadcell();
   void moveUp();
   void moveUpToLoadcell();
   void moveDown();
+  void moveDownFromLoadcell();
   void graspOnOffGripper(bool is_on);
   void graspGripper(const std::string &type);
   void saveData(bool on_start, int sub_index);
@@ -136,6 +137,7 @@ public:
   std::map<std::string, double> down_joint_value_;
   std::map<std::string, double> up_joint_value_;
   std::map<std::string, double> up2_joint_value_;
+  std::map<std::string, double> down2_joint_value_;
   std::map<std::string, double> gripper_value_;
   std::map<std::string, double> goal_joint_pose_;
   std::map<std::string, JointStatus*> joint_data_;
