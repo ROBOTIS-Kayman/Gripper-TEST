@@ -41,7 +41,7 @@ TestManager::TestManager()
   test_loadcell_sequency_.push_back(GRASP_ON_LOADCELL);
   test_loadcell_sequency_.push_back(GET_LOADCELL);
   test_loadcell_sequency_.push_back(GRASP_OFF);
-  test_loadcell_sequency_.push_back(MOVE_DOWN);
+  test_loadcell_sequency_.push_back(MOVE_DOWN_FROM_LOADCELL);
 
   queue_thread_ = boost::thread(boost::bind(&TestManager::queueThread, this));
   demo_thread_ = boost::thread(boost::bind(&TestManager::demoThread, this));
