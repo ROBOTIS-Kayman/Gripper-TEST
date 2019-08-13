@@ -82,7 +82,7 @@ TestGripperModule::TestGripperModule()
   // gripper
   gripper_value_["grasp_on"] = 66.0;
   gripper_value_["grasp_off"] = 0.0;
-  gripper_value_["grasp_on_loadcell"] = 60.0;
+  gripper_value_["grasp_on_loadcell"] = 55.0;
 
   /* ----- parameter initialization ----- */
   present_joint_position_ = Eigen::VectorXd::Zero(result_.size());
