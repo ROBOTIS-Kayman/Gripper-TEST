@@ -99,16 +99,19 @@ void QNodeTestGriper::testCountCallback(const std_msgs::Int32::ConstPtr &msg)
   test_count_ = msg->data;
 
   // check to set end count
-  if(set_end_count_ == true && test_count_ == (end_test_count_ - 1))
+//  if(set_end_count_ == true && test_count_ == (end_test_count_ - 1))
+  if(set_end_count_ == true && test_count_ == end_test_count_)
   {
     // stop next round
     sendCommand("stop_end");
-  }
 
-  if(set_end_count_ == true && test_count_ == end_test_count_)
-  {
     Q_EMIT clearSetEndTest();
   }
+
+//  if(set_end_count_ == true && test_count_ == end_test_count_)
+//  {
+//    Q_EMIT clearSetEndTest();
+//  }
 
   // update ui
   Q_EMIT updateTestCount(test_count_);
