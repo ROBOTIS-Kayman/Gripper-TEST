@@ -63,6 +63,7 @@ bool QNodeTestGriper::init()
   test_count_sub_ = nh.subscribe("/demo/total_test_count", 1, &QNodeTestGriper::testCountCallback, this);
   test_time_sub_ = nh.subscribe("/demo/total_test_time", 1, &QNodeTestGriper::testTimeCallback, this);
   status_msg_sub_ = nh.subscribe("/robotis/status", 1, &QNodeTestGriper::statusMsgCallback, this);
+  loadcell_sub_ = nh.subscribe("loadcell_state", 1, &QNodeTestGriper::loadcellCallback, this);
 
   // start thread
   start();
@@ -160,6 +161,18 @@ void QNodeTestGriper::statusMsgCallback(const robotis_controller_msgs::StatusMsg
   status_msg = status_msg + msg->status_msg;
 
   Q_EMIT log(status_msg);
+}
+
+void QNodeTestGriper::loadcellCallback(const loadcell_idc::LoadCellState::ConstPtr &msg)
+{
+  std::string loadcell_state = "";
+  if(msg->state == loadcell_idc::LoadCellState::UNSTABLE)
+    loadcell_state = "UNSTABLE";
+  else if(msg->state == loadcell_idc::LoadCellState::STABLE)
+    loadcell_state = "STABLE";
+  double value = msg->value;
+
+  Q_EMIT updateLoadcell(loadcell_state, value);
 }
 
 }

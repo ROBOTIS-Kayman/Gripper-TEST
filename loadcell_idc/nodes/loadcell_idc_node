@@ -1,0 +1,51 @@
+#!/usr/bin/env python
+
+import serial
+import time
+import rospy
+#from std_msgs.msg import Float32
+import std_msgs
+from loadcell_idc.msg import LoadCellState
+
+print "start"
+ser = serial.Serial('/dev/ttyUSB0',9600)
+
+
+if __name__ == '__main__':
+  try :
+#    pub = rospy.Publisher('loadcell_data',Float32, queue_size=1)
+    state_pub = rospy.Publisher('loadcell_state', LoadCellState, queue_size=1)
+    rospy.init_node('loadcell')
+
+    while not rospy.is_shutdown():
+      loadcell_msg = LoadCellState()
+      loadcell_msg.header = std_msgs.msg.Header()
+      loadcell_msg.header.stamp = rospy.Time.now()
+
+      dt = ser.readline()
+      data = dt.split(',')
+      data_state = data[0]
+      if (data_state == "ST") or (data_state == "US"):
+        weight_data = data[3]
+        weight_temp = weight_data.split(' ')
+        weight_sign = weight_temp[0]
+
+        if weight_sign == "-":
+          weight_numb = weight_temp[3]
+          weight = -float(weight_numb)
+        else :
+          weight_numb = weight_temp[4]
+          weight = float(weight_numb)
+
+#        print data_state,weight
+        if (data_state == "ST"):
+          loadcell_msg.state = LoadCellState.STABLE
+        elif (data_state == "US"):
+          loadcell_msg.state = LoadCellState.UNSTABLE
+        loadcell_msg.value = weight
+
+#      pub.publish(weight)
+      state_pub.publish(loadcell_msg)
+
+      time.sleep(0.1)
+  except rospy.ROSInterruptException:pass

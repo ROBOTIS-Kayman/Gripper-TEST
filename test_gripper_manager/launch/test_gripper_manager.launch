@@ -10,7 +10,7 @@
     
     <!-- TEST-Gripper GUI -->
     <node name="test_gripper_gui" pkg="test_gripper_gui" type="test_gripper_gui" output="screen"/>
-    
-    <!-- Robot Model & TF -->
-<!--    <include file="$(find thormang3_description)/launch/thormang3_mpc.launch"/> -->
+
+    <!-- Loadcell -->
+    <node name="loadcell_idc_node" pkg="loadcell_idc" type="loadcell_idc_node" output="screen"/>
 </launch>

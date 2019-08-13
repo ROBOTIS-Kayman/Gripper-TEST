@@ -21,4 +21,5 @@
 <!--  <depend>boost</depend>-->
   <depend>eigen</depend>
   <depend>yaml-cpp</depend>
+  <depend>loadcell_idc</depend>
 </package>

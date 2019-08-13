@@ -41,6 +41,8 @@
 #include "robotis_controller_msgs/StatusMsg.h"
 #include "robotis_controller_msgs/SyncWriteItem.h"
 
+#include "loadcell_idc/LoadCellState.h"
+
 #include "joint_status.h"
 
 namespace test_gripper
@@ -56,6 +58,7 @@ private:
   int test_count_;
   bool is_error_;
   double control_cycle_sec_;
+  bool get_loadcell_;
   std::string data_file_name_;
   std::string data_file_path_;
   boost::thread  queue_thread_;
@@ -76,6 +79,7 @@ private:
   Eigen::VectorXd goal_joint_position_;
 
   sensor_msgs::JointState goal_joint_pose_msg_;
+  loadcell_idc::LoadCellState loadcell_state_;
 
   /* movement */
   double mov_time_;
@@ -86,6 +90,8 @@ private:
 
   void queueThread();
 
+  void clearLoadcell() {loadcell_state_.state = 0; loadcell_state_.value = 0;}
+  void loadcellStateCallback(const loadcell_idc::LoadCellState::ConstPtr &msg);
   void setJointPoseMsgCallback(const sensor_msgs::JointState::ConstPtr& msg);
   void setCommandCallback(const std_msgs::String::ConstPtr &msg);
   void traGeneProcJointSpace();
@@ -109,7 +115,9 @@ public:
   void publishStatusMsg(unsigned int type, std::string msg);
 
   void handleCommand(const std::string &command);
+  void getLoadcell() {get_loadcell_ = true;}
   void moveUp();
+  void moveUpToLoadcell();
   void moveDown();
   void graspGripper(bool is_on);
   void saveData(bool on_start, int sub_index);
@@ -126,6 +134,7 @@ public:
   std::vector<std::string> save_data_category_;
   std::map<std::string, double> down_joint_value_;
   std::map<std::string, double> up_joint_value_;
+  std::map<std::string, double> up2_joint_value_;
   std::map<std::string, double> goal_joint_pose_;
   std::map<std::string, JointStatus*> joint_data_;
   std::string current_job_;

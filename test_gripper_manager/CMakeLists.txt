@@ -20,6 +20,7 @@ find_package(catkin REQUIRED COMPONENTS
   robotis_controller
   robotis_math
   test_gripper_module
+  loadcell_idc
 )
 
 ## Resolve system dependency on yaml-cpp, which apparently does not
@@ -67,6 +68,7 @@ catkin_package(
     robotis_controller
     robotis_math
     test_gripper_module
+    loadcell_idc
 )
 
 ################################################################################

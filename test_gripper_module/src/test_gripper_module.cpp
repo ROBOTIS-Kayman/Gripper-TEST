@@ -24,7 +24,8 @@ TestGripperModule::TestGripperModule()
     is_moving_(false),
     current_job_("none"),
     test_count_(0),
-    is_error_(false)
+    is_error_(false),
+    get_loadcell_(false)
 {
   enable_       = false;
   module_name_  = "test_gripper_module";
@@ -63,12 +64,20 @@ TestGripperModule::TestGripperModule()
   joint_name_to_id_["joint_2"] = 1;
   joint_name_to_id_["gripper"] = 2;
 
+  // ready to grasp
   down_joint_value_["joint_1"] = 30.0;
   down_joint_value_["joint_2"] = 15.0;
-  down_joint_value_["gripper"] = 0.0;
+  down_joint_value_["gripper"] = 0.0;   // off
+
+  // hold on
   up_joint_value_["joint_1"] = -30.0;
   up_joint_value_["joint_2"] = 75.0;
-  up_joint_value_["gripper"] = 66.0;
+  up_joint_value_["gripper"] = 66.0;    // on
+
+  // loadcell
+  up2_joint_value_["joint_1"] = 30.0;
+  up2_joint_value_["joint_2"] = -75.0;
+  up2_joint_value_["gripper"] = 0.0;    // off
 
   /* ----- parameter initialization ----- */
   present_joint_position_ = Eigen::VectorXd::Zero(result_.size());
@@ -110,6 +119,8 @@ void TestGripperModule::queueThread()
 
   ros::Subscriber set_command_sub = ros_node.subscribe("/robotis/test_gripper/command", 1, &TestGripperModule::setCommandCallback, this);
 
+  ros::Subscriber loadcell_sub = ros_node.subscribe("loadcell_state", 1, &TestGripperModule::loadcellStateCallback, this);
+
   /* service */
   //  ros::ServiceServer get_joint_pose_server = ros_node.advertiseService("/robotis/wholebody/get_joint_pose",
   //                                                                       &TestGripperModule::getJointPoseCallback, this);
@@ -127,6 +138,18 @@ void TestGripperModule::setMode()
   str_msg.data = module_name_;
   set_ctrl_module_pub_.publish(str_msg);
   return;
+}
+
+void TestGripperModule::loadcellStateCallback(const loadcell_idc::LoadCellState::ConstPtr &msg)
+{
+  if(get_loadcell_ == false)
+    return;
+
+  if(msg->state == loadcell_idc::LoadCellState::STABLE)
+  {
+    loadcell_state_ = *msg;
+    get_loadcell_ = false;
+  }
 }
 
 void TestGripperModule::setJointPoseMsgCallback(const sensor_msgs::JointState::ConstPtr& msg)
@@ -446,6 +469,10 @@ void TestGripperModule::handleCommand(const std::string &command)
   {
     moveUp();
   }
+  else if(command == "move_up_to_loadcell")
+  {
+    moveUpToLoadcell();
+  }
   else if(command == "move_down")
   {
     moveDown();
@@ -458,6 +485,10 @@ void TestGripperModule::handleCommand(const std::string &command)
   {
     saveData(false, 0);
   }
+  else if(command == "get_loadcell")
+  {
+    getLoadcell();
+  }
 }
 
 void TestGripperModule::moveUp()
@@ -469,6 +500,24 @@ void TestGripperModule::moveUp()
   }
 
   current_job_ = "move_up";
+
+  goal_joint_pose_.clear();
+  goal_joint_pose_["joint_1"] = up_joint_value_["joint_1"] * M_PI / 180.0;
+  goal_joint_pose_["joint_2"] = up_joint_value_["joint_2"] * M_PI / 180.0;
+
+  tra_gene_tread_ = new boost::thread(boost::bind(&TestGripperModule::traGeneProcJointSpace, this));
+  delete tra_gene_tread_;
+}
+
+void TestGripperModule::moveUpToLoadcell()
+{
+  if(is_moving_ == true)
+  {
+    ROS_ERROR_STREAM("It's busy now, try again. : " << current_job_);
+    return;
+  }
+
+  current_job_ = "move_up2";
 
   goal_joint_pose_.clear();
   goal_joint_pose_["joint_1"] = up_joint_value_["joint_1"] * M_PI / 180.0;
@@ -533,7 +582,7 @@ void TestGripperModule::saveData(bool on_start, int sub_index)
     data_file.open (data_file_name_, std::ofstream::out | std::ofstream::app);
 
     // save index
-    data_file << "index,job,sub_index,";
+    data_file << "index,job,sub_index,loadcell,";
     for (auto& it : joint_data_)
     {
       data_file << it.first << ",";
@@ -546,7 +595,8 @@ void TestGripperModule::saveData(bool on_start, int sub_index)
     data_file.open (data_file_name_, std::ofstream::out | std::ofstream::app);
 
   // save data
-  data_file << test_count_ << "," << current_job_ << "," << sub_index << ",";
+  data_file << test_count_ << "," << current_job_ << "," << sub_index << "," << loadcell_state_.value << ",";
+  clearLoadcell();
   for (auto& it : joint_data_)
   {
     data_file << it.second->joint_status_ << ",";

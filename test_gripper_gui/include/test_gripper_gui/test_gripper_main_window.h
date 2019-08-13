@@ -64,6 +64,7 @@ public Q_SLOTS:
 
   void updateTestTime(const std::string &time);
   void updateTestCount(int count);
+  void updateLoadcell(const std::string &state, double value);
   void clearSetEndTest();
 
 private:

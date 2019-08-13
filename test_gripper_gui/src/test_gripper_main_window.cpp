@@ -33,7 +33,7 @@ TestGripperMainWindow::TestGripperMainWindow(int argc, char** argv, QWidget *par
   QObject::connect(q_node_, SIGNAL(updateTestTime(std::string)), this, SLOT(updateTestTime(std::string)));
   QObject::connect(q_node_, SIGNAL(updateTestCount(int)), this, SLOT(updateTestCount(int)));
   QObject::connect(q_node_, SIGNAL(clearSetEndTest()), this, SLOT(clearSetEndTest()));
-
+  QObject::connect(q_node_, SIGNAL(updateLoadcell(std::string, double)), this, SLOT(updateLoadcell(std::string, double)));
   readSettings();
 
   // init display
@@ -108,6 +108,12 @@ void TestGripperMainWindow::closeEvent(QCloseEvent *event)
 {
   writeSettings();
   QMainWindow::closeEvent(event);
+}
+
+void TestGripperMainWindow::updateLoadcell(const std::string &state, double value)
+{
+  ui_->label_loadcell->setText(QString::fromStdString(state));
+  ui_->spinBox_loadcell->setValue(value);
 }
 
 void TestGripperMainWindow::updateTestTime(const std::string &time)

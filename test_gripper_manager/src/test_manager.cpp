@@ -23,7 +23,8 @@ namespace test_gripper
 TestManager::TestManager()
   : is_start_(false),
     is_ready_(false),
-    current_process_(NONE)
+    current_process_(NONE),
+    is_loadcell_task_(false)
 {
   // set sequency
   ready_sequency_.push_back(MOVE_UP);
@@ -35,6 +36,12 @@ TestManager::TestManager()
   test_sequency_.push_back(WAIT);
   test_sequency_.push_back(MOVE_DOWN);
   test_sequency_.push_back(GRASP_OFF);
+
+  test_loadcell_sequency_.push_back(MOVE_UP_TO_LOADCELL);
+  test_loadcell_sequency_.push_back(GRASP_ON);
+  test_loadcell_sequency_.push_back(GET_LOADCELL);
+  test_loadcell_sequency_.push_back(GRASP_OFF);
+  test_loadcell_sequency_.push_back(MOVE_DOWN);
 
   queue_thread_ = boost::thread(boost::bind(&TestManager::queueThread, this));
   demo_thread_ = boost::thread(boost::bind(&TestManager::demoThread, this));
@@ -178,8 +185,17 @@ void TestManager::demoThread()
             //            ros::Duration(3.0).sleep();
             break;
 
+          case GET_LOADCELL:
+            test_module_->getLoadcell();
+            setTimer(2.0);
+            break;
+
           case MOVE_UP:
             test_module_->moveUp();
+            break;
+
+          case MOVE_UP_TO_LOADCELL:
+            test_module_->moveUpToLoadcell();
             break;
 
           case MOVE_DOWN:
@@ -201,12 +217,33 @@ void TestManager::demoThread()
 
           if(is_ready_ == true)
           {
+            // check time to test loadcell
+            if((test_count_ % LOADCELLTASK) == 0)
+            {
+              if(is_loadcell_task_ == false)
+              {
+                // start testing of loadcell
+                job_sequency_.clear();
+                job_sequency_.assign(test_loadcell_sequency_.begin(), test_loadcell_sequency_.end());
+                is_loadcell_task_ = true;
+              }
+              else
+              {
+                // go back to gripper testing
+                job_sequency_.clear();
+                job_sequency_.assign(test_sequency_.begin(), test_sequency_.end());
+                is_loadcell_task_ = false;
+              }
+            }
+
             // changed save file name per 1000 times
-            if(test_count_ % 1000 == 0)
+            if(test_count_ % 1000 == 0 && is_loadcell_task_ == false)
               test_module_->setDataFileName("");
 
-            test_count_ += 1;
+            if(is_loadcell_task_ == false)
+              test_count_ += 1;
             test_module_->setTestCount(test_count_);
+
             // publish test count
             publishCount();
 
@@ -381,6 +418,7 @@ void TestManager::stopTest()
 
   ROS_INFO("Stop Testing");
   current_process_ = ON_STOP;
+  is_loadcell_task_ = false;
   test_module_->clearError();
   total_test_time_ = (ros::Time::now() - start_time_) + total_test_time_;
   savePrevTestData();
