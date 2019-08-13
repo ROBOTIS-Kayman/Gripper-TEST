@@ -520,8 +520,8 @@ void TestGripperModule::moveUpToLoadcell()
   current_job_ = "move_up2";
 
   goal_joint_pose_.clear();
-  goal_joint_pose_["joint_1"] = up_joint_value_["joint_1"] * M_PI / 180.0;
-  goal_joint_pose_["joint_2"] = up_joint_value_["joint_2"] * M_PI / 180.0;
+  goal_joint_pose_["joint_1"] = up2_joint_value_["joint_1"] * M_PI / 180.0;
+  goal_joint_pose_["joint_2"] = up2_joint_value_["joint_2"] * M_PI / 180.0;
 
   tra_gene_tread_ = new boost::thread(boost::bind(&TestGripperModule::traGeneProcJointSpace, this));
   delete tra_gene_tread_;
