@@ -39,6 +39,7 @@ TestManager::TestManager()
 
   test_loadcell_sequency_.push_back(MOVE_UP_TO_LOADCELL);
   test_loadcell_sequency_.push_back(GRASP_ON_LOADCELL);
+  test_loadcell_sequency_.push_back(WAIT);
   test_loadcell_sequency_.push_back(GET_LOADCELL);
   test_loadcell_sequency_.push_back(GRASP_OFF);
   test_loadcell_sequency_.push_back(MOVE_DOWN_FROM_LOADCELL);
@@ -190,8 +191,8 @@ void TestManager::demoThread()
             break;
 
           case GET_LOADCELL:
-            setTimer(2.0);
             test_module_->getLoadcell();
+            setTimer(0.1);
             break;
 
           case MOVE_UP:

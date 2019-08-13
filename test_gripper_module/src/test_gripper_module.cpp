@@ -646,7 +646,7 @@ void TestGripperModule::saveData(bool on_start, int sub_index)
 
   // save data
   data_file << test_count_ << "," << current_job_ << "," << sub_index << "," << loadcell_state_.value << ",";
-  clearLoadcell();
+//  clearLoadcell();
   for (auto& it : joint_data_)
   {
     data_file << it.second->joint_status_ << ",";
