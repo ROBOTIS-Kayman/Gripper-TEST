@@ -173,11 +173,11 @@ void TestManager::demoThread()
           switch(job_sequency_[current_job_index_])
           {
           case GRASP_ON:
-            test_module_->graspGripper(true);
+            test_module_->graspOnOffGripper(true);
             break;
 
           case GRASP_OFF:
-            test_module_->graspGripper(false);
+            test_module_->graspOnOffGripper(false);
             break;
 
           case GRASP_ON_LOADCELL:

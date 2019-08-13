@@ -464,11 +464,11 @@ void TestGripperModule::handleCommand(const std::string &command)
 
   if(command == "gripper_on")
   {
-    graspGripper(true);
+    graspOnOffGripper(true);
   }
   else if(command == "gripper_off")
   {
-    graspGripper(false);
+    graspOnOffGripper(false);
   }
   else if(command == "move_up")
   {
@@ -550,7 +550,7 @@ void TestGripperModule::moveDown()
   delete tra_gene_tread_;
 }
 
-void TestGripperModule::graspGripper(bool is_on)
+void TestGripperModule::graspOnOffGripper(bool is_on)
 {
   if(is_moving_ == true)
   {

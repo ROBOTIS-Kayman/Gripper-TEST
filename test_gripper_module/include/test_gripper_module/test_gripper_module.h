@@ -119,7 +119,7 @@ public:
   void moveUp();
   void moveUpToLoadcell();
   void moveDown();
-  void graspGripper(bool is_on);
+  void graspOnOffGripper(bool is_on);
   void graspGripper(const std::string &type);
   void saveData(bool on_start, int sub_index);
   void saveStatus(std::string joint_name, std::string error_status, robotis_framework::Dynamixel *dxl);
