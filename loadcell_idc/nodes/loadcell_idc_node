@@ -8,7 +8,7 @@ import std_msgs
 from loadcell_idc.msg import LoadCellState
 
 print "start"
-ser = serial.Serial('/dev/ttyUSB0',9600)
+#ser = serial.Serial('/dev/ttyUSB1',9600)
 
 
 if __name__ == '__main__':
@@ -16,16 +16,19 @@ if __name__ == '__main__':
 #    pub = rospy.Publisher('loadcell_data',Float32, queue_size=1)
     state_pub = rospy.Publisher('loadcell_state', LoadCellState, queue_size=1)
     rospy.init_node('loadcell')
+    dev_name = rospy.get_param('loadcell_dev', '/dev/ttyUSB0')
+    loadcell_serial = serial.Serial(dev_name, 9600)
+    print('open serial : ' + dev_name)
 
     while not rospy.is_shutdown():
-      loadcell_msg = LoadCellState()
-      loadcell_msg.header = std_msgs.msg.Header()
-      loadcell_msg.header.stamp = rospy.Time.now()
-
-      dt = ser.readline()
+      dt = loadcell_serial.readline()
       data = dt.split(',')
       data_state = data[0]
-      if (data_state == "ST") or (data_state == "US"):
+      if (data_state == "ST") or (data_state == "US"):        
+        loadcell_msg = LoadCellState()
+        loadcell_msg.header = std_msgs.msg.Header()
+        loadcell_msg.header.stamp = rospy.Time.now()
+
         weight_data = data[3]
         weight_temp = weight_data.split(' ')
         weight_sign = weight_temp[0]
@@ -44,8 +47,8 @@ if __name__ == '__main__':
           loadcell_msg.state = LoadCellState.UNSTABLE
         loadcell_msg.value = weight
 
-#      pub.publish(weight)
-      state_pub.publish(loadcell_msg)
+#        pub.publish(weight)
+        state_pub.publish(loadcell_msg)
 
-      time.sleep(0.1)
+      time.sleep(0.02)
   except rospy.ROSInterruptException:pass

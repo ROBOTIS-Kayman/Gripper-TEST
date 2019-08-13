@@ -155,6 +155,12 @@ void TestManager::demoThread()
       {
         if(current_job_index_ < job_sequency_.size())
         {
+          // first task of testing
+          if(current_job_index_ == 0)
+          {
+
+          }
+
           // check error
           if(test_module_->checkError() == true)
           {
@@ -167,7 +173,14 @@ void TestManager::demoThread()
           if(is_ready_ == true && current_job_index_ == 0)
           {
             // publish test count
+            if(is_loadcell_task_ == false)
+              test_count_ += 1;
+            test_module_->setTestCount(test_count_);
             publishCount();
+
+            // changed save file name per 1000 times
+            if(test_count_ % 1000 == 1 && is_loadcell_task_ == false)
+              test_module_->setDataFileName("");
           }
 
           // play current task
@@ -187,12 +200,11 @@ void TestManager::demoThread()
 
           case WAIT:
             setTimer(3.0);
-            //            ros::Duration(3.0).sleep();
             break;
 
           case GET_LOADCELL:
             test_module_->getLoadcell();
-            setTimer(0.1);
+            setTimer(2.0);
             break;
 
           case MOVE_UP:
@@ -246,15 +258,15 @@ void TestManager::demoThread()
             }
 
             // changed save file name per 1000 times
-            if(test_count_ % 1000 == 0 && is_loadcell_task_ == false)
-              test_module_->setDataFileName("");
+//            if(test_count_ % 1000 == 0 && is_loadcell_task_ == false)
+//              test_module_->setDataFileName("");
 
-            if(is_loadcell_task_ == false)
-              test_count_ += 1;
-            test_module_->setTestCount(test_count_);
+//            if(is_loadcell_task_ == false)
+//              test_count_ += 1;
+//            test_module_->setTestCount(test_count_);
 
-            // publish test count
-            publishCount();
+//            // publish test count
+//            publishCount();
 
             // check scheduled to stop
             if(last_command_ == "stop_end")
