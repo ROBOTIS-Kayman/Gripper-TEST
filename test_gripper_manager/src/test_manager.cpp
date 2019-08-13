@@ -39,7 +39,7 @@ TestManager::TestManager()
 
   test_loadcell_sequency_.push_back(MOVE_UP_TO_LOADCELL);
   test_loadcell_sequency_.push_back(GRASP_ON_LOADCELL);
-  test_loadcell_sequency_.push_back(WAIT);
+  test_loadcell_sequency_.push_back(WAIT_FOR_LOADCELL);
   test_loadcell_sequency_.push_back(GET_LOADCELL);
   test_loadcell_sequency_.push_back(GRASP_OFF);
   test_loadcell_sequency_.push_back(MOVE_DOWN_FROM_LOADCELL);
@@ -202,9 +202,13 @@ void TestManager::demoThread()
             setTimer(3.0);
             break;
 
+          case WAIT_FOR_LOADCELL:
+            setTimer(1.0);
+            break;
+
           case GET_LOADCELL:
             test_module_->getLoadcell();
-            setTimer(2.0);
+            setTimer(1.0);
             break;
 
           case MOVE_UP:
@@ -268,8 +272,8 @@ void TestManager::demoThread()
 //            // publish test count
 //            publishCount();
 
-            // check scheduled to stop
-            if(last_command_ == "stop_end")
+            // check scheduled to stop when normal test(not testing using loadcell)
+            if(last_command_ == "stop_end" && is_loadcell_task_ == false)
               stopTest();
           }
           else  // "ready" or "start" or "start_continue" command
@@ -346,20 +350,23 @@ void TestManager::publishTestTime()
 
 void TestManager::demoCommandCallback(const std_msgs::String::ConstPtr &msg)
 {
-  last_command_ = msg->data;
+  bool result = false;
 
   if(msg->data == "start")
-    startTest();
+    result = startTest();
   else if(msg->data == "start_continue")
-    startContinueTest();
+    result = startContinueTest();
   else if(msg->data == "stop")
-    stopTest();
+    result = stopTest();
   else if(msg->data == "ready")
-    readyTest();
+    result = readyTest();
   else if(msg->data == "resume")
-    resumeTest();
+    result = resumeTest();
   else if(msg->data == "stop_end")
-    ;
+    result = true;
+
+  if(result == true)
+    last_command_ = msg->data;
 }
 
 void TestManager::movementDoneCallback(const std_msgs::String::ConstPtr &msg)
@@ -378,12 +385,12 @@ void TestManager::startManager()
     ROS_ERROR("Test module is not set to test manager.");
 }
 
-void TestManager::readyTest()
+bool TestManager::readyTest()
 {
   if(is_start_ == true)
   {
     ROS_INFO("Alread started testing.");
-    return;
+    return false;
   }
 
   ROS_INFO("Reagy Testing");
@@ -391,14 +398,16 @@ void TestManager::readyTest()
   current_job_index_ = 0;
 
   current_process_ = ON_INIT;
+
+  return true;
 }
 
-void TestManager::startTest()
+bool TestManager::startTest()
 {
   if(is_start_ == true)
   {
     ROS_INFO("Alread started testing.");
-    return;
+    return false;
   }
 
   ROS_INFO("Start Testing");
@@ -427,14 +436,16 @@ void TestManager::startTest()
   current_job_index_ = 0;
 
   current_process_ = ON_START;
+
+  return true;
 }
 
-void TestManager::stopTest()
+bool TestManager::stopTest()
 {
   if(is_start_ == false)
   {
     ROS_INFO("Alread stopped testing");
-    return;
+    return false;
   }
 
   ROS_INFO("Stop Testing");
@@ -443,26 +454,30 @@ void TestManager::stopTest()
   test_module_->clearError();
   total_test_time_ = (ros::Time::now() - start_time_) + total_test_time_;
   savePrevTestData();
+
+  return true;
 }
 
-void TestManager::resumeTest()
+bool TestManager::resumeTest()
 {
   if(is_start_ == true)
   {
     ROS_INFO("Alread started testing.");
-    return;
+    return false;
   }
 
   ROS_INFO("Resume Tesing");
   current_process_ = ON_RESUME;
+
+  return true;
 }
 
-void TestManager::startContinueTest()
+bool TestManager::startContinueTest()
 {
   if(is_start_ == true)
   {
     ROS_INFO("Alread started testing.");
-    return;
+    return false;
   }
 
   // check last testing file.
@@ -491,6 +506,8 @@ void TestManager::startContinueTest()
   current_job_index_ = 0;
 
   current_process_ = ON_START;
+
+  return true;
 }
 
 bool TestManager::getPrevTestData(std::string &save_path, int &test_count, double &test_time)

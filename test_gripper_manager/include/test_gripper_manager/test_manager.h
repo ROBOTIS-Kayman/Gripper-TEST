@@ -45,7 +45,8 @@ public:
     MOVE_UP_TO_LOADCELL = 6,
     MOVE_DOWN_FROM_LOADCELL = 7,
     GRASP_ON_LOADCELL = 8,
-    GET_LOADCELL = 9
+    GET_LOADCELL = 9,
+    WAIT_FOR_LOADCELL = 10,
   };
 
   enum PROCESS_INDEX
@@ -66,11 +67,11 @@ public:
   ~TestManager();
 
   void startManager();
-  void readyTest();
-  void startTest();
-  void stopTest();
-  void startContinueTest();
-  void resumeTest();
+  bool readyTest();
+  bool startTest();
+  bool stopTest();
+  bool startContinueTest();
+  bool resumeTest();
   bool getPrevTestData(std::string &save_path, int &test_count, double &test_time);
   void savePrevTestData();
 
