@@ -314,7 +314,7 @@ void TestManager::setTimerThread(double sec)
 
 void TestManager::setTimer(double sec)
 {
-  boost::thread timer_thread = boost::thread(boost::bind(&TestManager::setTimerThread, this, 3.0));
+  boost::thread timer_thread = boost::thread(boost::bind(&TestManager::setTimerThread, this, sec));
 }
 
 void TestManager::publishStatusMsg(unsigned int type, std::string msg)
@@ -422,7 +422,7 @@ bool TestManager::startTest()
   {
     test_module_->setDataFileName("");
     total_test_time_ = ros::Duration(0.0);
-    test_count_ = 1;
+    test_count_ = 0;
   }
   else
   {
@@ -494,7 +494,7 @@ bool TestManager::startContinueTest()
     ROS_WARN("It can not be started continue. It will start in first.");
 
     total_test_time_ = ros::Duration(0.0);
-    test_count_ = 1;
+    test_count_ = 0;
   }
   else
   {
