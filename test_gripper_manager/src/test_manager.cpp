@@ -203,7 +203,7 @@ void TestManager::demoThread()
             break;
 
           case WAIT_FOR_LOADCELL:
-            setTimer(1.0);
+            setTimer(3.0);
             break;
 
           case GET_LOADCELL:

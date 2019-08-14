@@ -148,14 +148,10 @@ void TestGripperModule::setMode()
 
 void TestGripperModule::loadcellStateCallback(const loadcell_idc::LoadCellState::ConstPtr &msg)
 {
-//  if(get_loadcell_ == false)
-//    return;
-
-  if(msg->state == loadcell_idc::LoadCellState::STABLE)
-  {
+//  if(msg->state == loadcell_idc::LoadCellState::STABLE)
+//  {
     loadcell_state_ = *msg;
-//    get_loadcell_ = false;
-  }
+//  }
 }
 
 void TestGripperModule::setJointPoseMsgCallback(const sensor_msgs::JointState::ConstPtr& msg)
@@ -646,7 +642,7 @@ void TestGripperModule::saveData(bool on_start, int sub_index)
 
   // save data
   data_file << test_count_ << "," << current_job_ << "," << sub_index << "," << loadcell_state_.value << ",";
-//  clearLoadcell();
+  clearLoadcell();
   for (auto& it : joint_data_)
   {
     data_file << it.second->joint_status_ << ",";
