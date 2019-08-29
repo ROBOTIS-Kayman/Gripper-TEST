@@ -82,7 +82,9 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
   ${YAML_CPP_LIBRARIES}
 )
+
 add_executable(${PROJECT_NAME} ${test_gripper_gui_SRCS} ${test_gripper_gui_MOCS} ${test_gripper_gui_UIS_H})
+add_dependencies(${PROJECT_NAME} ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES} ${YAML_CPP_LIBRARIES})
 if("${qt_gui_cpp_USE_QT_MAJOR_VERSION} " STREQUAL "5 ")
   target_link_libraries(${PROJECT_NAME} Qt5::Widgets)

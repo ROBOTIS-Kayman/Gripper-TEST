@@ -165,7 +165,7 @@ void TestManager::demoThread()
           if(test_module_->checkError() == true)
           {
             ROS_ERROR("Error occured!!!");
-            stopTest();
+            stopTest(true);
             continue;
           }
 
@@ -260,17 +260,6 @@ void TestManager::demoThread()
                 is_loadcell_task_ = false;
               }
             }
-
-            // changed save file name per 1000 times
-//            if(test_count_ % 1000 == 0 && is_loadcell_task_ == false)
-//              test_module_->setDataFileName("");
-
-//            if(is_loadcell_task_ == false)
-//              test_count_ += 1;
-//            test_module_->setTestCount(test_count_);
-
-//            // publish test count
-//            publishCount();
 
             // check scheduled to stop when normal test(not testing using loadcell)
             if(last_command_ == "stop_end" && is_loadcell_task_ == false)
@@ -440,7 +429,7 @@ bool TestManager::startTest()
   return true;
 }
 
-bool TestManager::stopTest()
+bool TestManager::stopTest(bool is_break)
 {
   if(is_start_ == false)
   {
@@ -454,6 +443,9 @@ bool TestManager::stopTest()
   test_module_->clearError();
   total_test_time_ = (ros::Time::now() - start_time_) + total_test_time_;
   savePrevTestData();
+
+  if(is_break == true)
+    is_ready_ = false;
 
   return true;
 }

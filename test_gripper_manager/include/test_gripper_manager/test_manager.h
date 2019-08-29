@@ -69,7 +69,7 @@ public:
   void startManager();
   bool readyTest();
   bool startTest();
-  bool stopTest();
+  bool stopTest(bool is_break = false);
   bool startContinueTest();
   bool resumeTest();
   bool getPrevTestData(std::string &save_path, int &test_count, double &test_time);
