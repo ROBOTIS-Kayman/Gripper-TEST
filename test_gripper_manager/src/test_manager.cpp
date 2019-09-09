@@ -242,6 +242,9 @@ void TestManager::demoThread()
 
           if(is_ready_ == true)
           {
+            // save test data
+            savePrevTestData();
+
             // check time to test loadcell
             if((test_count_ % LOADCELLTASK) == 0)
             {
@@ -529,6 +532,12 @@ bool TestManager::getPrevTestData(std::string &save_path, int &test_count, doubl
 
 void TestManager::savePrevTestData()
 {
+  if(test_count_ < 1)
+  {
+    ROS_ERROR("Wrong Test Count");
+    return;
+  }
+
   std::string file_name = test_module_->getDataFilePath() + "prev_test.yaml";
 
   std::string data_file_name = test_module_->getDataFileName();
