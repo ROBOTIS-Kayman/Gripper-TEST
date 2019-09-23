@@ -43,7 +43,7 @@ TestGripperModule::TestGripperModule()
   joint_data_["gripper"] = new JointStatus("gripper");
 
   // set base current to check error : 5kg
-  joint_data_["joint_1"]->base_current_ = 1200; // 5kg : 3000;
+  joint_data_["joint_1"]->base_current_ = 1000; // 5kg : 3000;
   joint_data_["joint_1"]->check_current_task_ = "move_up_2, move_down_1";
   joint_data_["gripper"]->base_current_ = 600;
   joint_data_["gripper"]->check_current_task_ = "grasp_on_2, move_up_1, move_up_2, move_down_1, move_down_2, grasp_off_1";
