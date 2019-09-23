@@ -42,6 +42,11 @@ public:
     WAIT = 3,
     MOVE_DOWN = 4,
     GRASP_OFF = 5,
+    MOVE_UP_TO_LOADCELL = 6,
+    MOVE_DOWN_FROM_LOADCELL = 7,
+    GRASP_ON_LOADCELL = 8,
+    GET_LOADCELL = 9,
+    WAIT_FOR_LOADCELL = 10,
   };
 
   enum PROCESS_INDEX
@@ -62,17 +67,18 @@ public:
   ~TestManager();
 
   void startManager();
-  void readyTest();
-  void startTest();
-  void stopTest();
-  void startContinueTest();
-  void resumeTest();
+  bool readyTest();
+  bool startTest();
+  bool stopTest(bool is_break = false);
+  bool startContinueTest();
+  bool resumeTest();
   bool getPrevTestData(std::string &save_path, int &test_count, double &test_time);
   void savePrevTestData();
 
   TestGripperModule* test_module_;
 
 private:
+  const int LOADCELLTASK = 5;
   void publishStatusMsg(unsigned int type, std::string msg);
   void publishCount();
   void publishTestTime();
@@ -98,10 +104,12 @@ private:
   int current_job_index_;
   std::vector<int> ready_sequency_;
   std::vector<int> test_sequency_;
+  std::vector<int> test_loadcell_sequency_;
   std::vector<int> job_sequency_;
   ros::Time start_time_;
   ros::Duration total_test_time_;
   int test_count_;
+  bool is_loadcell_task_;
 };
 
 } // namespace test_gripper

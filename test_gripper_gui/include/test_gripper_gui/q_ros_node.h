@@ -30,6 +30,7 @@
 #include "yaml-cpp/yaml.h"
 
 #include "robotis_controller_msgs/StatusMsg.h"
+#include "loadcell_idc/LoadCellState.h"
 
 namespace test_gripper_gui {
 
@@ -55,6 +56,7 @@ Q_SIGNALS:
   void updateTestTime(const std::string &time);
   void updateTestCount(int count);
   void clearSetEndTest();
+  void updateLoadcell(const std::string &state, double value);
 
 private:
   int init_argc_;
@@ -69,10 +71,12 @@ private:
   ros::Subscriber test_count_sub_;
   ros::Subscriber test_time_sub_;
   ros::Subscriber status_msg_sub_;
+  ros::Subscriber loadcell_sub_;
 
   void testCountCallback(const std_msgs::Int32::ConstPtr &msg);
   void testTimeCallback(const std_msgs::Duration::ConstPtr &msg);
   void statusMsgCallback(const robotis_controller_msgs::StatusMsg::ConstPtr &msg);
+  void loadcellCallback(const loadcell_idc::LoadCellState::ConstPtr &msg);
 };
 
 }

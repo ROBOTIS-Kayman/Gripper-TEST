@@ -23,7 +23,8 @@ namespace test_gripper
 TestManager::TestManager()
   : is_start_(false),
     is_ready_(false),
-    current_process_(NONE)
+    current_process_(NONE),
+    is_loadcell_task_(false)
 {
   // set sequency
   ready_sequency_.push_back(MOVE_UP);
@@ -35,6 +36,13 @@ TestManager::TestManager()
   test_sequency_.push_back(WAIT);
   test_sequency_.push_back(MOVE_DOWN);
   test_sequency_.push_back(GRASP_OFF);
+
+  test_loadcell_sequency_.push_back(MOVE_UP_TO_LOADCELL);
+  test_loadcell_sequency_.push_back(GRASP_ON_LOADCELL);
+  test_loadcell_sequency_.push_back(WAIT_FOR_LOADCELL);
+  test_loadcell_sequency_.push_back(GET_LOADCELL);
+  test_loadcell_sequency_.push_back(GRASP_OFF);
+  test_loadcell_sequency_.push_back(MOVE_DOWN_FROM_LOADCELL);
 
   queue_thread_ = boost::thread(boost::bind(&TestManager::queueThread, this));
   demo_thread_ = boost::thread(boost::bind(&TestManager::demoThread, this));
@@ -147,11 +155,17 @@ void TestManager::demoThread()
       {
         if(current_job_index_ < job_sequency_.size())
         {
+          // first task of testing
+          if(current_job_index_ == 0)
+          {
+
+          }
+
           // check error
           if(test_module_->checkError() == true)
           {
             ROS_ERROR("Error occured!!!");
-            stopTest();
+            stopTest(true);
             continue;
           }
 
@@ -159,31 +173,58 @@ void TestManager::demoThread()
           if(is_ready_ == true && current_job_index_ == 0)
           {
             // publish test count
+            if(is_loadcell_task_ == false)
+              test_count_ += 1;
+            test_module_->setTestCount(test_count_);
             publishCount();
+
+            // changed save file name per 1000 times
+            if(test_count_ % 1000 == 1 && is_loadcell_task_ == false)
+              test_module_->setDataFileName("");
           }
 
           // play current task
           switch(job_sequency_[current_job_index_])
           {
           case GRASP_ON:
-            test_module_->graspGripper(true);
+            test_module_->graspOnOffGripper(true);
             break;
 
           case GRASP_OFF:
-            test_module_->graspGripper(false);
+            test_module_->graspOnOffGripper(false);
+            break;
+
+          case GRASP_ON_LOADCELL:
+            test_module_->graspGripper("grasp_on_loadcell");
             break;
 
           case WAIT:
             setTimer(3.0);
-            //            ros::Duration(3.0).sleep();
+            break;
+
+          case WAIT_FOR_LOADCELL:
+            setTimer(3.0);
+            break;
+
+          case GET_LOADCELL:
+            test_module_->getLoadcell();
+            setTimer(1.0);
             break;
 
           case MOVE_UP:
             test_module_->moveUp();
             break;
 
+          case MOVE_UP_TO_LOADCELL:
+            test_module_->moveUpToLoadcell();
+            break;
+
           case MOVE_DOWN:
             test_module_->moveDown();
+            break;
+
+          case MOVE_DOWN_FROM_LOADCELL:
+            test_module_->moveDownFromLoadcell();
             break;
 
           default:
@@ -201,17 +242,30 @@ void TestManager::demoThread()
 
           if(is_ready_ == true)
           {
-            // changed save file name per 1000 times
-            if(test_count_ % 1000 == 0)
-              test_module_->setDataFileName("");
+            // save test data
+            savePrevTestData();
 
-            test_count_ += 1;
-            test_module_->setTestCount(test_count_);
-            // publish test count
-            publishCount();
+            // check time to test loadcell
+            if((test_count_ % LOADCELLTASK) == 0)
+            {
+              if(is_loadcell_task_ == false)
+              {
+                // start testing of loadcell
+                job_sequency_.clear();
+                job_sequency_.assign(test_loadcell_sequency_.begin(), test_loadcell_sequency_.end());
+                is_loadcell_task_ = true;
+              }
+              else
+              {
+                // go back to gripper testing
+                job_sequency_.clear();
+                job_sequency_.assign(test_sequency_.begin(), test_sequency_.end());
+                is_loadcell_task_ = false;
+              }
+            }
 
-            // check scheduled to stop
-            if(last_command_ == "stop_end")
+            // check scheduled to stop when normal test(not testing using loadcell)
+            if(last_command_ == "stop_end" && is_loadcell_task_ == false)
               stopTest();
           }
           else  // "ready" or "start" or "start_continue" command
@@ -252,7 +306,7 @@ void TestManager::setTimerThread(double sec)
 
 void TestManager::setTimer(double sec)
 {
-  boost::thread timer_thread = boost::thread(boost::bind(&TestManager::setTimerThread, this, 3.0));
+  boost::thread timer_thread = boost::thread(boost::bind(&TestManager::setTimerThread, this, sec));
 }
 
 void TestManager::publishStatusMsg(unsigned int type, std::string msg)
@@ -288,20 +342,23 @@ void TestManager::publishTestTime()
 
 void TestManager::demoCommandCallback(const std_msgs::String::ConstPtr &msg)
 {
-  last_command_ = msg->data;
+  bool result = false;
 
   if(msg->data == "start")
-    startTest();
+    result = startTest();
   else if(msg->data == "start_continue")
-    startContinueTest();
+    result = startContinueTest();
   else if(msg->data == "stop")
-    stopTest();
+    result = stopTest();
   else if(msg->data == "ready")
-    readyTest();
+    result = readyTest();
   else if(msg->data == "resume")
-    resumeTest();
+    result = resumeTest();
   else if(msg->data == "stop_end")
-    ;
+    result = true;
+
+  if(result == true)
+    last_command_ = msg->data;
 }
 
 void TestManager::movementDoneCallback(const std_msgs::String::ConstPtr &msg)
@@ -320,12 +377,12 @@ void TestManager::startManager()
     ROS_ERROR("Test module is not set to test manager.");
 }
 
-void TestManager::readyTest()
+bool TestManager::readyTest()
 {
   if(is_start_ == true)
   {
     ROS_INFO("Alread started testing.");
-    return;
+    return false;
   }
 
   ROS_INFO("Reagy Testing");
@@ -333,58 +390,89 @@ void TestManager::readyTest()
   current_job_index_ = 0;
 
   current_process_ = ON_INIT;
+
+  return true;
 }
 
-void TestManager::startTest()
+bool TestManager::startTest()
 {
   if(is_start_ == true)
   {
     ROS_INFO("Alread started testing.");
-    return;
+    return false;
   }
 
   ROS_INFO("Start Testing");
-  total_test_time_ = ros::Duration(0.0);
-  test_count_ = 1;
-  test_module_->setDataFileName("");
+
+  // check to exist the saved file.
+  std::string save_path;
+  int test_count = 0;
+  double test_time = 0.0;
+
+  bool result = getPrevTestData(save_path, test_count, test_time);
+  if(result == false)
+  {
+    test_module_->setDataFileName("");
+    total_test_time_ = ros::Duration(0.0);
+    test_count_ = 0;
+  }
+  else
+  {
+    ROS_WARN("The saved file is found. Test will be continued.");
+
+    test_module_->setDataFileName(save_path);
+    test_count_ = test_count;
+    total_test_time_ = ros::Duration(test_time);
+  }
+
   current_job_index_ = 0;
 
   current_process_ = ON_START;
+
+  return true;
 }
 
-void TestManager::stopTest()
+bool TestManager::stopTest(bool is_break)
 {
   if(is_start_ == false)
   {
     ROS_INFO("Alread stopped testing");
-    return;
+    return false;
   }
 
   ROS_INFO("Stop Testing");
   current_process_ = ON_STOP;
+  is_loadcell_task_ = false;
   test_module_->clearError();
   total_test_time_ = (ros::Time::now() - start_time_) + total_test_time_;
   savePrevTestData();
+
+  if(is_break == true)
+    is_ready_ = false;
+
+  return true;
 }
 
-void TestManager::resumeTest()
+bool TestManager::resumeTest()
 {
   if(is_start_ == true)
   {
     ROS_INFO("Alread started testing.");
-    return;
+    return false;
   }
 
   ROS_INFO("Resume Tesing");
   current_process_ = ON_RESUME;
+
+  return true;
 }
 
-void TestManager::startContinueTest()
+bool TestManager::startContinueTest()
 {
   if(is_start_ == true)
   {
     ROS_INFO("Alread started testing.");
-    return;
+    return false;
   }
 
   // check last testing file.
@@ -401,7 +489,7 @@ void TestManager::startContinueTest()
     ROS_WARN("It can not be started continue. It will start in first.");
 
     total_test_time_ = ros::Duration(0.0);
-    test_count_ = 1;
+    test_count_ = 0;
   }
   else
   {
@@ -413,6 +501,8 @@ void TestManager::startContinueTest()
   current_job_index_ = 0;
 
   current_process_ = ON_START;
+
+  return true;
 }
 
 bool TestManager::getPrevTestData(std::string &save_path, int &test_count, double &test_time)
@@ -442,6 +532,12 @@ bool TestManager::getPrevTestData(std::string &save_path, int &test_count, doubl
 
 void TestManager::savePrevTestData()
 {
+  if(test_count_ < 1)
+  {
+    ROS_ERROR("Wrong Test Count");
+    return;
+  }
+
   std::string file_name = test_module_->getDataFilePath() + "prev_test.yaml";
 
   std::string data_file_name = test_module_->getDataFileName();

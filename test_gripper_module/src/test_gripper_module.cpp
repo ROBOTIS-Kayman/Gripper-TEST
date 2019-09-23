@@ -24,7 +24,8 @@ TestGripperModule::TestGripperModule()
     is_moving_(false),
     current_job_("none"),
     test_count_(0),
-    is_error_(false)
+    is_error_(false),
+    get_loadcell_(false)
 {
   enable_       = false;
   module_name_  = "test_gripper_module";
@@ -42,7 +43,7 @@ TestGripperModule::TestGripperModule()
   joint_data_["gripper"] = new JointStatus("gripper");
 
   // set base current to check error : 5kg
-  joint_data_["joint_1"]->base_current_ = 1200; // 5kg : 3000;
+  joint_data_["joint_1"]->base_current_ = 1000; // 5kg : 3000;
   joint_data_["joint_1"]->check_current_task_ = "move_up_2, move_down_1";
   joint_data_["gripper"]->base_current_ = 600;
   joint_data_["gripper"]->check_current_task_ = "grasp_on_2, move_up_1, move_up_2, move_down_1, move_down_2, grasp_off_1";
@@ -63,12 +64,26 @@ TestGripperModule::TestGripperModule()
   joint_name_to_id_["joint_2"] = 1;
   joint_name_to_id_["gripper"] = 2;
 
+  // ready to grasp
   down_joint_value_["joint_1"] = 30.0;
   down_joint_value_["joint_2"] = 15.0;
-  down_joint_value_["gripper"] = 0.0;
+  down_joint_value_["gripper"] = 0.0;   // off
+
+  // hold on
   up_joint_value_["joint_1"] = -30.0;
   up_joint_value_["joint_2"] = 75.0;
-  up_joint_value_["gripper"] = 66.0;
+  up_joint_value_["gripper"] = 66.0;    // on
+
+  // loadcell
+  up2_joint_value_["joint_1"] = 30.0;
+  up2_joint_value_["joint_2"] = -75.0;
+  down2_joint_value_["joint_1"] = 30.0;
+  down2_joint_value_["joint_2"] = 15.0;
+
+  // gripper
+  gripper_value_["grasp_on"] = 66.0;
+  gripper_value_["grasp_off"] = 0.0;
+  gripper_value_["grasp_on_loadcell"] = 55.0;
 
   /* ----- parameter initialization ----- */
   present_joint_position_ = Eigen::VectorXd::Zero(result_.size());
@@ -110,6 +125,8 @@ void TestGripperModule::queueThread()
 
   ros::Subscriber set_command_sub = ros_node.subscribe("/robotis/test_gripper/command", 1, &TestGripperModule::setCommandCallback, this);
 
+  ros::Subscriber loadcell_sub = ros_node.subscribe("loadcell_state", 1, &TestGripperModule::loadcellStateCallback, this);
+
   /* service */
   //  ros::ServiceServer get_joint_pose_server = ros_node.advertiseService("/robotis/wholebody/get_joint_pose",
   //                                                                       &TestGripperModule::getJointPoseCallback, this);
@@ -127,6 +144,14 @@ void TestGripperModule::setMode()
   str_msg.data = module_name_;
   set_ctrl_module_pub_.publish(str_msg);
   return;
+}
+
+void TestGripperModule::loadcellStateCallback(const loadcell_idc::LoadCellState::ConstPtr &msg)
+{
+//  if(msg->state == loadcell_idc::LoadCellState::STABLE)
+//  {
+    loadcell_state_ = *msg;
+//  }
 }
 
 void TestGripperModule::setJointPoseMsgCallback(const sensor_msgs::JointState::ConstPtr& msg)
@@ -188,36 +213,36 @@ void TestGripperModule::traGeneProcJointSpace()
     goal_joint_tra_.block(0, id, all_time_steps_, 1) = tra;
   }
 
-//  for (int dim = 0; dim < result_.size(); dim++)
-//  {
-//    double ini_value = goal_joint_position_(dim);
-//    double tar_value = goal_joint_position_(dim);
+  //  for (int dim = 0; dim < result_.size(); dim++)
+  //  {
+  //    double ini_value = goal_joint_position_(dim);
+  //    double tar_value = goal_joint_position_(dim);
 
-//    Eigen::MatrixXd tra =
-//        robotis_framework::calcMinimumJerkTra(ini_value, 0.0, 0.0,
-//                                              tar_value , 0.0 , 0.0 ,
-//                                              control_cycle_sec_, mov_time_);
+  //    Eigen::MatrixXd tra =
+  //        robotis_framework::calcMinimumJerkTra(ini_value, 0.0, 0.0,
+  //                                              tar_value , 0.0 , 0.0 ,
+  //                                              control_cycle_sec_, mov_time_);
 
-//    goal_joint_tra_.block(0, dim, all_time_steps_, 1) = tra;
-//  }
+  //    goal_joint_tra_.block(0, dim, all_time_steps_, 1) = tra;
+  //  }
 
-//  //for (int dim = 0; dim < goal_joint_pose_msg_.name.size(); dim++)
-//  for(std::map<std::string, double>::iterator goal_it = goal_joint_pose_.begin(); goal_it != goal_joint_pose_.end(); ++goal_it)
-//  {
-//    //std::string joint_name = goal_joint_pose_msg_.name[dim];
-//    std::string joint_name = goal_it->first;
-//    int id = joint_name_to_id_[joint_name];
+  //  //for (int dim = 0; dim < goal_joint_pose_msg_.name.size(); dim++)
+  //  for(std::map<std::string, double>::iterator goal_it = goal_joint_pose_.begin(); goal_it != goal_joint_pose_.end(); ++goal_it)
+  //  {
+  //    //std::string joint_name = goal_joint_pose_msg_.name[dim];
+  //    std::string joint_name = goal_it->first;
+  //    int id = joint_name_to_id_[joint_name];
 
-//    double ini_value = goal_joint_position_(id);
-//    double tar_value = goal_it->second;
+  //    double ini_value = goal_joint_position_(id);
+  //    double tar_value = goal_it->second;
 
-//    Eigen::MatrixXd tra =
-//        robotis_framework::calcMinimumJerkTra(ini_value, 0.0, 0.0,
-//                                              tar_value , 0.0 , 0.0 ,
-//                                              control_cycle_sec_, mov_time_);
+  //    Eigen::MatrixXd tra =
+  //        robotis_framework::calcMinimumJerkTra(ini_value, 0.0, 0.0,
+  //                                              tar_value , 0.0 , 0.0 ,
+  //                                              control_cycle_sec_, mov_time_);
 
-//    goal_joint_tra_.block(0, id, all_time_steps_, 1) = tra;
-//  }
+  //    goal_joint_tra_.block(0, id, all_time_steps_, 1) = tra;
+  //  }
 
   cnt_ = 0;
   is_moving_ = true;
@@ -436,15 +461,19 @@ void TestGripperModule::handleCommand(const std::string &command)
 
   if(command == "gripper_on")
   {
-    graspGripper(true);
+    graspOnOffGripper(true);
   }
   else if(command == "gripper_off")
   {
-    graspGripper(false);
+    graspOnOffGripper(false);
   }
   else if(command == "move_up")
   {
     moveUp();
+  }
+  else if(command == "move_up_to_loadcell")
+  {
+    moveUpToLoadcell();
   }
   else if(command == "move_down")
   {
@@ -458,6 +487,16 @@ void TestGripperModule::handleCommand(const std::string &command)
   {
     saveData(false, 0);
   }
+  else if(command == "get_loadcell")
+  {
+    getLoadcell();
+  }
+}
+
+void TestGripperModule::getLoadcell()
+{
+  current_job_ = "loadcell";
+  saveData(false, 0);
 }
 
 void TestGripperModule::moveUp()
@@ -473,6 +512,24 @@ void TestGripperModule::moveUp()
   goal_joint_pose_.clear();
   goal_joint_pose_["joint_1"] = up_joint_value_["joint_1"] * M_PI / 180.0;
   goal_joint_pose_["joint_2"] = up_joint_value_["joint_2"] * M_PI / 180.0;
+
+  tra_gene_tread_ = new boost::thread(boost::bind(&TestGripperModule::traGeneProcJointSpace, this));
+  delete tra_gene_tread_;
+}
+
+void TestGripperModule::moveUpToLoadcell()
+{
+  if(is_moving_ == true)
+  {
+    ROS_ERROR_STREAM("It's busy now, try again. : " << current_job_);
+    return;
+  }
+
+  current_job_ = "move_up2";
+
+  goal_joint_pose_.clear();
+  goal_joint_pose_["joint_1"] = up2_joint_value_["joint_1"] * M_PI / 180.0;
+  goal_joint_pose_["joint_2"] = up2_joint_value_["joint_2"] * M_PI / 180.0;
 
   tra_gene_tread_ = new boost::thread(boost::bind(&TestGripperModule::traGeneProcJointSpace, this));
   delete tra_gene_tread_;
@@ -496,7 +553,25 @@ void TestGripperModule::moveDown()
   delete tra_gene_tread_;
 }
 
-void TestGripperModule::graspGripper(bool is_on)
+void TestGripperModule::moveDownFromLoadcell()
+{
+  if(is_moving_ == true)
+  {
+    ROS_ERROR_STREAM("It's busy now, try again. : " << current_job_);
+    return;
+  }
+
+  current_job_ = "move_down2";
+
+  goal_joint_pose_.clear();
+  goal_joint_pose_["joint_1"] = down2_joint_value_["joint_1"] * M_PI / 180.0;
+  goal_joint_pose_["joint_2"] = down2_joint_value_["joint_2"] * M_PI / 180.0;
+
+  tra_gene_tread_ = new boost::thread(boost::bind(&TestGripperModule::traGeneProcJointSpace, this));
+  delete tra_gene_tread_;
+}
+
+void TestGripperModule::graspOnOffGripper(bool is_on)
 {
   if(is_moving_ == true)
   {
@@ -509,13 +584,33 @@ void TestGripperModule::graspGripper(bool is_on)
     current_job_ = "grasp_on";
 
     goal_joint_pose_.clear();
-    goal_joint_pose_["gripper"] = up_joint_value_["gripper"] * M_PI / 180.0;
+    goal_joint_pose_["gripper"] = gripper_value_["grasp_on"] * M_PI / 180.0;
   }
   else
   {
     current_job_ = "grasp_off";
-    goal_joint_pose_["gripper"] = down_joint_value_["gripper"] * M_PI / 180.0;
+    goal_joint_pose_["gripper"] = gripper_value_["grasp_off"] * M_PI / 180.0;
   }
+
+  tra_gene_tread_ = new boost::thread(boost::bind(&TestGripperModule::traGeneProcJointSpace, this));
+  delete tra_gene_tread_;
+}
+
+void TestGripperModule::graspGripper(const std::string &type)
+{
+  if(is_moving_ == true)
+  {
+    ROS_ERROR_STREAM("It's busy now, try again. : " << current_job_);
+    return;
+  }
+
+  if(gripper_value_.find(type) == gripper_value_.end())
+    return;
+
+  current_job_ = type;
+
+  goal_joint_pose_.clear();
+  goal_joint_pose_["gripper"] = gripper_value_[type] * M_PI / 180.0;
 
   tra_gene_tread_ = new boost::thread(boost::bind(&TestGripperModule::traGeneProcJointSpace, this));
   delete tra_gene_tread_;
@@ -533,7 +628,7 @@ void TestGripperModule::saveData(bool on_start, int sub_index)
     data_file.open (data_file_name_, std::ofstream::out | std::ofstream::app);
 
     // save index
-    data_file << "index,job,sub_index,";
+    data_file << "index,job,sub_index,loadcell,";
     for (auto& it : joint_data_)
     {
       data_file << it.first << ",";
@@ -546,7 +641,8 @@ void TestGripperModule::saveData(bool on_start, int sub_index)
     data_file.open (data_file_name_, std::ofstream::out | std::ofstream::app);
 
   // save data
-  data_file << test_count_ << "," << current_job_ << "," << sub_index << ",";
+  data_file << test_count_ << "," << current_job_ << "," << sub_index << "," << loadcell_state_.value << ",";
+  clearLoadcell();
   for (auto& it : joint_data_)
   {
     data_file << it.second->joint_status_ << ",";
@@ -566,7 +662,8 @@ const std::string TestGripperModule::currentDateTime()
   struct tm  tstruct;
   char       buf[80];
   tstruct = *localtime(&now);
-  strftime(buf, sizeof(buf), "%Y-%m-%d.%X", &tstruct); // YYYY-MM-DD.HH:mm:ss
+  //  strftime(buf, sizeof(buf), "%Y-%m-%d.%X", &tstruct); // YYYY-MM-DD.HH:mm:ss
+  strftime(buf, sizeof(buf), "%Y-%m-%d.%H-%M-%S", &tstruct); // YYYY-MM-DD.HH-mm-ss
 
   return buf;
 }

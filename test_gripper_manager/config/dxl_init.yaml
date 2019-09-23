@@ -40,7 +40,7 @@ gripper :   # RH-P12-RN(A)
   return_delay_time     : 0   # item name : value
   operating_mode        : 5
   homing_offset         : 0
-  current_limit         : 661
+  current_limit         : 1984
   max_position_limit    : 1150
   min_position_limit    : 0
   shutdown              : 52

@@ -63,6 +63,7 @@ bool QNodeTestGriper::init()
   test_count_sub_ = nh.subscribe("/demo/total_test_count", 1, &QNodeTestGriper::testCountCallback, this);
   test_time_sub_ = nh.subscribe("/demo/total_test_time", 1, &QNodeTestGriper::testTimeCallback, this);
   status_msg_sub_ = nh.subscribe("/robotis/status", 1, &QNodeTestGriper::statusMsgCallback, this);
+  loadcell_sub_ = nh.subscribe("loadcell_state", 1, &QNodeTestGriper::loadcellCallback, this);
 
   // start thread
   start();
@@ -98,16 +99,19 @@ void QNodeTestGriper::testCountCallback(const std_msgs::Int32::ConstPtr &msg)
   test_count_ = msg->data;
 
   // check to set end count
-  if(set_end_count_ == true && test_count_ == (end_test_count_ - 1))
+//  if(set_end_count_ == true && test_count_ == (end_test_count_ - 1))
+  if(set_end_count_ == true && test_count_ == end_test_count_)
   {
     // stop next round
     sendCommand("stop_end");
-  }
 
-  if(set_end_count_ == true && test_count_ == end_test_count_)
-  {
     Q_EMIT clearSetEndTest();
   }
+
+//  if(set_end_count_ == true && test_count_ == end_test_count_)
+//  {
+//    Q_EMIT clearSetEndTest();
+//  }
 
   // update ui
   Q_EMIT updateTestCount(test_count_);
@@ -160,6 +164,18 @@ void QNodeTestGriper::statusMsgCallback(const robotis_controller_msgs::StatusMsg
   status_msg = status_msg + msg->status_msg;
 
   Q_EMIT log(status_msg);
+}
+
+void QNodeTestGriper::loadcellCallback(const loadcell_idc::LoadCellState::ConstPtr &msg)
+{
+  std::string loadcell_state = "";
+  if(msg->state == loadcell_idc::LoadCellState::UNSTABLE)
+    loadcell_state = "UNSTABLE";
+  else if(msg->state == loadcell_idc::LoadCellState::STABLE)
+    loadcell_state = "STABLE";
+  double value = msg->value;
+
+  Q_EMIT updateLoadcell(loadcell_state, value);
 }
 
 }

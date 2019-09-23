@@ -19,4 +19,5 @@
   <depend>robotis_math</depend>
   <depend>test_gripper_module</depend>
   <depend>yaml-cpp</depend>
+  <depend>loadcell_idc</depend>
 </package>

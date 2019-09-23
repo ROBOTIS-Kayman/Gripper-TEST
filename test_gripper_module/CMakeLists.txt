@@ -20,6 +20,7 @@ find_package(catkin REQUIRED COMPONENTS
   robotis_framework_common
   robotis_device
   robotis_math
+  loadcell_idc
 #  boost
 #  eigen
 #  yaml-cpp
@@ -74,6 +75,7 @@ catkin_package(
    robotis_framework_common
    robotis_device
    robotis_math
+   loadcell_idc
 #   boost
 #   eigen
 #   yaml-cpp
