@@ -76,6 +76,16 @@ void TestGripperMainWindow::on_pushButton_e_stop_clicked(bool clicked)
   q_node_->sendCommand("stop");
 }
 
+void TestGripperMainWindow::on_pushButton_lock_clicked(bool checked)
+{
+  QList<QAbstractButton*> buttons = ui_->groupBox_control->findChildren<QAbstractButton *>();
+
+  foreach(QAbstractButton* button, buttons)
+  {
+    button->setEnabled(!checked);
+  }
+}
+
 void TestGripperMainWindow::on_checkBox_set_stop_count_stateChanged(int state)
 {
   if(state == Qt::Unchecked)
@@ -119,7 +129,7 @@ void TestGripperMainWindow::updateLoadcell(const std::string &state, double valu
 void TestGripperMainWindow::updateTestTime(const std::string &time)
 {
   QString q_string_time = QString::fromStdString(time);
-//  QString q_string_time("0000:00:00");
+  //  QString q_string_time("0000:00:00");
 
   ui_->lcdNumber_test_time->display(q_string_time);
 }

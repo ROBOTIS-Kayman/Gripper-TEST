@@ -57,6 +57,7 @@ public Q_SLOTS:
   void on_pushButton_start_continue_clicked(bool clicked);
   void on_pushButton_stop_clicked(bool clicked);
   void on_pushButton_e_stop_clicked(bool clicked);
+  void on_pushButton_lock_clicked(bool checked);
 
   void on_checkBox_set_stop_count_stateChanged(int state);
 

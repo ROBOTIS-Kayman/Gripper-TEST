@@ -20,32 +20,36 @@
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout">
     <item>
-     <widget class="QLabel" name="label">
+     <widget class="QPushButton" name="pushButton_lock">
+      <property name="minimumSize">
+       <size>
+        <width>0</width>
+        <height>150</height>
+       </size>
+      </property>
       <property name="font">
        <font>
-        <family>Noto Sans</family>
         <pointsize>80</pointsize>
         <weight>75</weight>
         <bold>true</bold>
        </font>
       </property>
-      <property name="frameShape">
-       <enum>QFrame::Box</enum>
+      <property name="autoFillBackground">
+       <bool>false</bool>
       </property>
-      <property name="frameShadow">
-       <enum>QFrame::Plain</enum>
-      </property>
-      <property name="lineWidth">
-       <number>2</number>
-      </property>
-      <property name="midLineWidth">
-       <number>0</number>
+      <property name="styleSheet">
+       <string notr="true">background-color: rgba(191, 64, 64, 0);
+border:1px solid;
+border-color: rgb(238, 238, 236);</string>
       </property>
       <property name="text">
        <string>RH-P12-RN Test</string>
       </property>
-      <property name="alignment">
-       <set>Qt::AlignCenter</set>
+      <property name="checkable">
+       <bool>true</bool>
+      </property>
+      <property name="checked">
+       <bool>false</bool>
       </property>
      </widget>
     </item>
@@ -70,7 +74,7 @@
      </widget>
     </item>
     <item>
-     <widget class="QGroupBox" name="groupBox_navation">
+     <widget class="QGroupBox" name="groupBox_test_time">
       <property name="font">
        <font>
         <pointsize>12</pointsize>
@@ -108,7 +112,7 @@
      </widget>
     </item>
     <item>
-     <widget class="QGroupBox" name="groupBox">
+     <widget class="QGroupBox" name="groupBox_test">
       <property name="font">
        <font>
         <pointsize>12</pointsize>
@@ -150,7 +154,7 @@
      </spacer>
     </item>
     <item>
-     <widget class="QGroupBox" name="groupBox_positions">
+     <widget class="QGroupBox" name="groupBox_control">
       <property name="font">
        <font>
         <pointsize>12</pointsize>

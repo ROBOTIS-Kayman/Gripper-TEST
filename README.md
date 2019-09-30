@@ -12,8 +12,8 @@
   - save the number of test and the task
   - save the data of joints : hw error, goal_position, present_position, present_current, present_temperature
 
-- test_gripper_gui
-![](./gripper_test.png)
+- test_gripper_gui  
+![](./test_gripper_gui.png)
 
 ## Data files
 - monitoring data : test_gripper_module/data/DATE.csv
@@ -22,7 +22,7 @@
 ## How to run the program
 - turn on the power supply
 - open the terminal
-- type the below
+- type like the below
 ```
 $ roslaunch test_gripper_manager test_gripper_manager.launch
 ```
@@ -38,9 +38,11 @@ $ roslaunch test_gripper_manager test_gripper_manager.launch
   - If you click `resume` button, test starts again.
 - E-Stop
   - If you click `E-Stop` in the upper side, test stops after the current task is finished.
+- **RH-P12-RN Test (Hidden button)**
+  - If you click this hidden button, all control buttons are changed between enable mode and disable mode.
 
 ## How to terminate
-- Click `stop`
+- Click `stop` button and wait for the test set to stop.  
 - Switch an window to the terminal that launched the test package.
 - `Ctrl + C`
 - turn off the power supply
