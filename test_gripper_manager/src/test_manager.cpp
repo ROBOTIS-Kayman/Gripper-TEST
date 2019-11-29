@@ -21,8 +21,10 @@ namespace test_gripper
 {
 
 TestManager::TestManager()
-  : is_start_(false),
+  : robot_name_("GripperTest"),
+    is_start_(false),
     is_ready_(false),
+    loadcell_test_(false),
     current_process_(NONE),
     is_loadcell_task_(false)
 {
@@ -246,7 +248,7 @@ void TestManager::demoThread()
             savePrevTestData();
 
             // check time to test loadcell
-            if((test_count_ % LOADCELLTASK) == 0)
+            if((loadcell_test_ == true ) && ((test_count_ % LOADCELLTASK) == 0))
             {
               if(is_loadcell_task_ == false)
               {
@@ -507,7 +509,7 @@ bool TestManager::startContinueTest()
 
 bool TestManager::getPrevTestData(std::string &save_path, int &test_count, double &test_time)
 {
-  std::string file_name = test_module_->getDataFilePath() + "prev_test.yaml";
+  std::string file_name = test_module_->getDataFilePath() + robot_name_ + "_prev_test.yaml";
 
   // get prev test data
   YAML::Node doc;
@@ -538,7 +540,7 @@ void TestManager::savePrevTestData()
     return;
   }
 
-  std::string file_name = test_module_->getDataFilePath() + "prev_test.yaml";
+  std::string file_name = test_module_->getDataFilePath() + robot_name_ + "_prev_test.yaml";
 
   std::string data_file_name = test_module_->getDataFileName();
 
@@ -552,6 +554,14 @@ void TestManager::savePrevTestData()
   std::ofstream fout(file_name.c_str());
   fout << yaml_out.c_str();  // dump it back into the file
   return;
+}
+
+void TestManager::setRobotName(const std::string& robot_name)
+{
+  robot_name_ = robot_name;
+
+  if(test_module_ != NULL)
+    test_module_->setRobotName(robot_name);
 }
 
 }
