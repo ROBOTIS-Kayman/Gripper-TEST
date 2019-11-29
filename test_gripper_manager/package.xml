@@ -20,4 +20,5 @@
   <depend>test_gripper_module</depend>
   <depend>yaml-cpp</depend>
   <depend>loadcell_idc</depend>
+  <depend>powerxel_module</depend>
 </package>

@@ -55,6 +55,7 @@ class TestGripperModule
     public robotis_framework::Singleton<TestGripperModule>
 {
 private:
+  std::string robot_name_;
   int test_count_;
   bool is_error_;
   double control_cycle_sec_;
@@ -80,6 +81,8 @@ private:
 
   sensor_msgs::JointState goal_joint_pose_msg_;
   loadcell_idc::LoadCellState loadcell_state_;
+  double gripper_current_;
+  double gripper_voltage_;
 
   /* movement */
   double mov_time_;
@@ -112,6 +115,7 @@ public:
 
   void stop();
   bool isRunning();
+  void setRobotName(const std::string &robot_name) {robot_name_ = robot_name;}
   void publishStatusMsg(unsigned int type, std::string msg);
 
   void handleCommand(const std::string &command);

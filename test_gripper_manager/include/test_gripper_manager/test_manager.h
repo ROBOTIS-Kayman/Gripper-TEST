@@ -74,6 +74,7 @@ public:
   bool resumeTest();
   bool getPrevTestData(std::string &save_path, int &test_count, double &test_time);
   void savePrevTestData();
+  void setRobotName(const std::string& robot_name);
 
   TestGripperModule* test_module_;
 
@@ -89,6 +90,7 @@ private:
   void setTimer(double sec);
   void setTimerThread(double sec);
 
+  std::string robot_name_;
   boost::thread  queue_thread_;
   boost::thread  demo_thread_;
 
@@ -100,6 +102,7 @@ private:
 
   std::string last_command_;
   bool is_start_, is_ready_;
+  bool loadcell_test_;
   int current_process_;
   int current_job_index_;
   std::vector<int> ready_sequency_;

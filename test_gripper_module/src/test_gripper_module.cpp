@@ -21,6 +21,7 @@ using namespace test_gripper;
 
 TestGripperModule::TestGripperModule()
   : control_cycle_sec_(0.008),
+    robot_name_("GripperTest"),
     is_moving_(false),
     current_job_("none"),
     test_count_(0),
@@ -314,6 +315,18 @@ void TestGripperModule::process(std::map<std::string, robotis_framework::Dynamix
 {
   if (enable_ == false)
     return;
+
+  /*----- Get Sensor Data -----*/
+  auto sensor_it = sensors.find("current");
+  if(sensor_it != sensors.end())
+    gripper_current_ = sensor_it->second;
+
+  sensor_it = sensors.find("voltage");
+  if(sensor_it != sensors.end())
+  gripper_voltage_ = sensor_it->second;
+
+  ROS_WARN_STREAM("current : " << gripper_current_ << "(A), voltage : " << gripper_voltage_ << "(V)");
+
 
   /*----- Get Joint Data & Sensor Data-----*/
   for (std::map<std::string, robotis_framework::DynamixelState *>::iterator state_iter = result_.begin();
@@ -624,7 +637,7 @@ void TestGripperModule::saveData(bool on_start, int sub_index)
   std::ofstream data_file;
   if(on_start == true || data_file_name_.empty())
   {
-    data_file_name_ = data_file_path_ + currentDateTime() + ".csv";
+    data_file_name_ = data_file_path_ + robot_name_ +"_" + currentDateTime() + ".csv";
     data_file.open (data_file_name_, std::ofstream::out | std::ofstream::app);
 
     // save index
@@ -643,6 +656,7 @@ void TestGripperModule::saveData(bool on_start, int sub_index)
   // save data
   data_file << test_count_ << "," << current_job_ << "," << sub_index << "," << loadcell_state_.value << ",";
   clearLoadcell();
+  // save joint data
   for (auto& it : joint_data_)
   {
     data_file << it.second->joint_status_ << ",";

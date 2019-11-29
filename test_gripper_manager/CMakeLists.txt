@@ -21,6 +21,7 @@ find_package(catkin REQUIRED COMPONENTS
   robotis_math
   test_gripper_module
   loadcell_idc
+  powerxel_module
 )
 
 ## Resolve system dependency on yaml-cpp, which apparently does not
@@ -69,6 +70,7 @@ catkin_package(
     robotis_math
     test_gripper_module
     loadcell_idc
+    powerxel_module
 )
 
 ################################################################################
@@ -83,6 +85,10 @@ include_directories(
 add_executable(${PROJECT_NAME} src/test_gripper_manager.cpp src/test_manager.cpp)
 add_dependencies(${PROJECT_NAME} ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES} ${YAML_CPP_LIBRARIES})
+
+add_executable(test_powerxel_manager src/test_powerxel_manager.cpp)
+add_dependencies(test_powerxel_manager ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(test_powerxel_manager ${catkin_LIBRARIES} ${YAML_CPP_LIBRARIES})
 
 ################################################################################
 # Install

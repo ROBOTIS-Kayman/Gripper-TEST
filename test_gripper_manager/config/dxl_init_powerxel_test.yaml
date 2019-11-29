@@ -1,0 +1,5 @@
+joint_1 :   
+  return_delay_time     : 0   # item name : value
+  operating_mode        : 3
+  homing_offset         : 0
+
