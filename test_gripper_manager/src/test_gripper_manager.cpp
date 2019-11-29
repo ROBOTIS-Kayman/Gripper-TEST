@@ -18,6 +18,7 @@
 #include "robotis_controller/robotis_controller.h"
 
 /* Sensor Module Header */
+#include "powerxel_module/powerxel_module.h"
 
 /* Motion Module Header */
 #include "test_gripper_module/test_gripper_module.h"
@@ -59,7 +60,7 @@ int main(int argc, char **argv)
     sleep(1);
 
     /* Add Sensor Module */
-    // ...
+    controller->addSensorModule((robotis_framework::SensorModule*)PowerXelModule::getInstance());
 
     /* Add Motion Module */
     controller->addMotionModule((robotis_framework::MotionModule*)TestGripperModule::getInstance());
