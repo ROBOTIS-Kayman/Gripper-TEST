@@ -1,15 +1,14 @@
 <?xml version="1.0" ?>
 
 <launch>
+    <arg name="loadcell_name"                default="/dev/loadcell"/>
     <param name="offset_file_path"      value="$(find test_gripper_manager)/config/offset.yaml"/>
     <param name="robot_file_path"       value="$(find test_gripper_manager)/config/TEST-GRIPPER.robot"/>
     <param name="init_file_path"        value="$(find test_gripper_manager)/config/dxl_init.yaml"/>
-    <param name="loadcell_dev"          value="/dev/loadcell"/>
+    <param name="loadcell_dev"          value="$(arg loadcell_name)"/>
 
     <!-- TEST-Gripper Manager -->
-    <node name="test_gripper_manager" pkg="test_gripper_manager" type="test_gripper_manager" output="screen">
-      <param name="robot_name" value="GripperTest"/>
-    </node>
+    <node name="test_gripper_manager" pkg="test_gripper_manager" type="test_gripper_manager" output="screen"/>
     
     <!-- TEST-Gripper GUI -->
     <node name="test_gripper_gui" pkg="test_gripper_gui" type="test_gripper_gui" output="screen"/>
