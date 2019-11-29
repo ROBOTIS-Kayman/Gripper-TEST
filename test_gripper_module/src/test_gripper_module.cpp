@@ -20,13 +20,14 @@
 using namespace test_gripper;
 
 TestGripperModule::TestGripperModule()
-  : control_cycle_sec_(0.008),
-    robot_name_("GripperTest"),
-    is_moving_(false),
-    current_job_("none"),
+  : robot_name_("GripperTest"),
     test_count_(0),
     is_error_(false),
-    get_loadcell_(false)
+    control_cycle_sec_(0.008),
+    get_loadcell_(false),
+    is_moving_(false),
+    gripper_current_last_task_(0.0),
+    current_job_("none")
 {
   enable_       = false;
   module_name_  = "test_gripper_module";
@@ -298,6 +299,7 @@ bool TestGripperModule::checkTrajectory()
       ROS_INFO_STREAM("[start] send trajectory : " << current_job_);
       publishStatusMsg(robotis_controller_msgs::StatusMsg::STATUS_INFO, "Start Trajectory : " + current_job_);
       on_start = true;
+      gripper_current_last_task_ = 0.0;
     }
 
     // joint space control
@@ -305,6 +307,9 @@ bool TestGripperModule::checkTrajectory()
       goal_joint_position_(dim) = goal_joint_tra_(cnt_, dim);
 
     cnt_++;
+
+    // calc the average of joint current
+    gripper_current_last_task_ = (gripper_current_last_task_ * (cnt_ - 1) + gripper_current_) / cnt_;
   }
 
   return on_start;
@@ -641,7 +646,7 @@ void TestGripperModule::saveData(bool on_start, int sub_index)
     data_file.open (data_file_name_, std::ofstream::out | std::ofstream::app);
 
     // save index
-    data_file << "index,job,sub_index,loadcell,";
+    data_file << "index,job,sub_index,gripper_current,";
     for (auto& it : joint_data_)
     {
       data_file << it.first << ",";
@@ -654,7 +659,7 @@ void TestGripperModule::saveData(bool on_start, int sub_index)
     data_file.open (data_file_name_, std::ofstream::out | std::ofstream::app);
 
   // save data
-  data_file << test_count_ << "," << current_job_ << "," << sub_index << "," << loadcell_state_.value << ",";
+  data_file << test_count_ << "," << current_job_ << "," << sub_index << "," << gripper_current_last_task_ << ",";
   clearLoadcell();
   // save joint data
   for (auto& it : joint_data_)

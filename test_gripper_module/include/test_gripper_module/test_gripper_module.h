@@ -83,6 +83,7 @@ private:
   loadcell_idc::LoadCellState loadcell_state_;
   double gripper_current_;
   double gripper_voltage_;
+  double gripper_current_last_task_;
 
   /* movement */
   double mov_time_;
