@@ -46,7 +46,7 @@ public:
   void run();
   void sendCommand(const std::string &command);
   void setEndCount(bool is_set, int end_count) {set_end_count_ = is_set; end_test_count_ = end_count; }
-  bool getRobotName(const std::string &robot_name) { robot_name = robot_name_; return robot_name != std::string::empty(); }
+  bool getRobotName(std::string &robot_name) { robot_name = robot_name_; return !robot_name_.empty(); }
 
 public Q_SLOTS:
 //  void changeControlRobot(int index);
