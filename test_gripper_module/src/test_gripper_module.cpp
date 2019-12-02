@@ -260,9 +260,11 @@ void TestGripperModule::traGeneProcJointSpace()
 void TestGripperModule::traGeneProcJointSpaceWithViaPoints()
 {
   mov_time_ = 1.5;
-  Eigen::MatrixXd via_time;
-  via_time << 0.75;
   int via_num = 1;
+  Eigen::MatrixXd via_time;
+  via_time.resize(via_num, 1);
+  via_time.coeffRef(0, 0) = 0.75;
+
   int all_time_steps = int(floor((mov_time_/control_cycle_sec_) + 1 ));
   mov_time_ = double (all_time_steps - 1) * control_cycle_sec_;
 
