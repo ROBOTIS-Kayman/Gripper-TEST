@@ -67,6 +67,7 @@ public Q_SLOTS:
   void updateTestCount(int count);
   void updateLoadcell(const std::string &state, double value);
   void clearSetEndTest();
+  void setTestName(const std::string &test_name);
 
 private:
 //  void updateRobotUI();

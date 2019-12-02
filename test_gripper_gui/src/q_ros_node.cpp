@@ -53,6 +53,9 @@ bool QNodeTestGriper::init()
   ros::start();
 
   ros::NodeHandle nh;
+  ros::NodeHandle p_nh("~");
+
+  robot_name_ = p_nh.param<std::string>("robot_name", "");
 
   // initialize variable
   test_count_ = 0;

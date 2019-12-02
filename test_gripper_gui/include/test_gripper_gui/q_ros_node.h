@@ -46,6 +46,7 @@ public:
   void run();
   void sendCommand(const std::string &command);
   void setEndCount(bool is_set, int end_count) {set_end_count_ = is_set; end_test_count_ = end_count; }
+  bool getRobotName(const std::string &robot_name) { robot_name = robot_name_; return robot_name != std::string::empty(); }
 
 public Q_SLOTS:
 //  void changeControlRobot(int index);
@@ -66,6 +67,7 @@ private:
   ros::Duration test_time_;
   bool set_end_count_;
   int end_test_count_;
+  std::string robot_name_;
 
   ros::Publisher test_command_pub_;
   ros::Subscriber test_count_sub_;

@@ -125,6 +125,7 @@ public:
   void handleCommand(const std::string &command);
   void getLoadcell();
   void moveUp();
+  void moveForward();
   void moveUpforReady();
   void moveUpToLoadcell();
   void moveDown();
@@ -146,6 +147,7 @@ public:
   std::map<std::string, double> down_joint_value_;
   std::map<std::string, double> via_joint_value_;
   std::map<std::string, double> up_joint_value_;
+  std::map<std::string, double> forward_joint_value_;
   std::map<std::string, double> up2_joint_value_;
   std::map<std::string, double> down2_joint_value_;
   std::map<std::string, double> gripper_value_;

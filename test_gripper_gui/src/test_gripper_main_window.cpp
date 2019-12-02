@@ -39,6 +39,9 @@ TestGripperMainWindow::TestGripperMainWindow(int argc, char** argv, QWidget *par
   // init display
   updateTestTime("0000:00:00");
   updateTestCount(0);
+  std::string robot_name;
+  if(q_node_->getRobotName(robot_name))
+    setTestName("RH-P12-RN Test(" + robot_name + ")");
 }
 
 TestGripperMainWindow::~TestGripperMainWindow()
@@ -144,6 +147,11 @@ void TestGripperMainWindow::updateTestCount(int count)
 void TestGripperMainWindow::clearSetEndTest()
 {
   ui_->checkBox_set_stop_count->click();
+}
+
+void TestGripperMainWindow::setTestName(const std::string &test_name)
+{
+  ui_->pushButton_lock->setText(QString::fromStdString(test_name));
 }
 
 void TestGripperMainWindow::logToStatusBar(const std::string& message)

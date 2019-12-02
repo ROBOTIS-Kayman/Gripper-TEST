@@ -75,6 +75,10 @@ TestGripperModule::TestGripperModule()
   via_joint_value_["joint_1"] = 20.0;
   via_joint_value_["joint_2"] = 25.0;
 
+  // forward point
+  forward_joint_value_["joint_1"] = 0.0;
+  forward_joint_value_["joint_2"] = -45.0;
+
   // hold on
   up_joint_value_["joint_1"] = -30.0;
   up_joint_value_["joint_2"] = 75.0;
@@ -259,11 +263,11 @@ void TestGripperModule::traGeneProcJointSpace()
 
 void TestGripperModule::traGeneProcJointSpaceWithViaPoints()
 {
-  mov_time_ = 1.5;
+  mov_time_ = 2.0;
   int via_num = 1;
   Eigen::MatrixXd via_time;
   via_time.resize(via_num, 1);
-  via_time.coeffRef(0, 0) = 0.4;
+  via_time.coeffRef(0, 0) = 0.75;
 
   int all_time_steps = int(floor((mov_time_/control_cycle_sec_) + 1 ));
   mov_time_ = double (all_time_steps - 1) * control_cycle_sec_;
@@ -590,6 +594,24 @@ void TestGripperModule::moveUp()
     return;
   }
 
+  current_job_ = "move_up_ready";
+
+  goal_joint_pose_.clear();
+  goal_joint_pose_["joint_1"] = up_joint_value_["joint_1"] * M_PI / 180.0;
+  goal_joint_pose_["joint_2"] = up_joint_value_["joint_2"] * M_PI / 180.0;
+
+  tra_gene_tread_ = new boost::thread(boost::bind(&TestGripperModule::traGeneProcJointSpace, this));
+  delete tra_gene_tread_;
+}
+
+void TestGripperModule::moveForward()
+{
+  if(is_moving_ == true)
+  {
+    ROS_ERROR_STREAM("It's busy now, try again. : " << current_job_);
+    return;
+  }
+
   current_job_ = "move_up";
 
   goal_joint_pose_.clear();
@@ -599,19 +621,6 @@ void TestGripperModule::moveUp()
   via_joint_pose_["joint_1"] = via_joint_value_["joint_1"] * M_PI / 180.0;
   via_joint_pose_["joint_2"] = via_joint_value_["joint_2"] * M_PI / 180.0;
 
-
-//  joint_via_pose_.resize(via_num, joint_name_to_id_.size());
-//  joint_via_dpose_.resize(via_num, joint_name_to_id_.size());
-//  joint_via_ddpose_.resize(via_num, joint_name_to_id_.size());
-
-//  joint_via_pose_.fill(0.0);
-//  joint_via_dpose_.fill(0.0);
-//  joint_via_ddpose_.fill(0.0);
-
-//  joint_via_pose_.coeffRef(0, joint_name_to_id_["joint_1"]) = via_joint_value_["joint_1"] * M_PI / 180.0;
-//  joint_via_pose_.coeffRef(0, joint_name_to_id_["joint_2"]) = via_joint_value_["joint_2"] * M_PI / 180.0;
-
-//  tra_gene_tread_ = new boost::thread(boost::bind(&TestGripperModule::traGeneProcJointSpace, this));
   tra_gene_tread_ = new boost::thread(boost::bind(&TestGripperModule::traGeneProcJointSpaceWithViaPoints, this));
   delete tra_gene_tread_;
 }
