@@ -71,6 +71,10 @@ TestGripperModule::TestGripperModule()
   down_joint_value_["joint_2"] = 15.0;
   down_joint_value_["gripper"] = 0.0;   // off
 
+  // via point
+  via_joint_value_["joint_1"] = 20.0;
+  via_joint_value_["joint_2"] = 25.0;
+
   // hold on
   up_joint_value_["joint_1"] = -30.0;
   up_joint_value_["joint_2"] = 75.0;
@@ -91,6 +95,7 @@ TestGripperModule::TestGripperModule()
   present_joint_position_ = Eigen::VectorXd::Zero(result_.size());
   present_joint_velocity_ = Eigen::VectorXd::Zero(result_.size());
   goal_joint_position_    = Eigen::VectorXd::Zero(result_.size());
+  via_joint_position_     = Eigen::VectorXd::Zero(result_.size());
 }
 
 TestGripperModule::~TestGripperModule()
@@ -245,6 +250,50 @@ void TestGripperModule::traGeneProcJointSpace()
 
   //    goal_joint_tra_.block(0, id, all_time_steps_, 1) = tra;
   //  }
+
+  cnt_ = 0;
+  is_moving_ = true;
+
+  ROS_INFO_STREAM("[ready] make trajectory : " << current_job_);
+}
+
+void TestGripperModule::traGeneProcJointSpaceWithViaPoints()
+{
+  mov_time_ = 1.5;
+  Eigen::MatrixXd via_time;
+  via_time << 0.75;
+  int via_num = 1;
+  int all_time_steps = int(floor((mov_time_/control_cycle_sec_) + 1 ));
+  mov_time_ = double (all_time_steps - 1) * control_cycle_sec_;
+
+  all_time_steps_ = int(mov_time_ / control_cycle_sec_) + 1;
+  goal_joint_tra_.resize(all_time_steps_, result_.size() + 1);
+
+  /* calculate joint trajectory */
+  for(std::map<std::string, robotis_framework::DynamixelState *>::iterator result_it = result_.begin(); result_it != result_.end(); ++result_it)
+  {
+    //std::string joint_name = goal_joint_pose_msg_.name[dim];
+    std::string joint_name = result_it->first;
+    int id = joint_name_to_id_[joint_name];
+
+    double ini_value = goal_joint_position_(id);
+    double tar_value = goal_joint_position_(id);
+
+    std::map<std::string, double>::iterator goal_it = goal_joint_pose_.find(joint_name);
+    if(goal_it != goal_joint_pose_.end())
+      tar_value = goal_it->second;
+
+    Eigen::MatrixXd via_value = joint_via_pose_.col(id);
+    Eigen::MatrixXd d_via_value = joint_via_dpose_.col(id);
+    Eigen::MatrixXd dd_via_value = joint_via_ddpose_.col(id);
+
+    Eigen::MatrixXd tra = robotis_framework::calcMinimumJerkTraWithViaPoints(via_num, ini_value, 0.0, 0.0,
+                                                                             via_value, d_via_value, dd_via_value,
+                                                                             tar_value, 0.0, 0.0,
+                                                                             control_cycle_sec_, via_time, mov_time_);
+
+    goal_joint_tra_.block(0, id, all_time_steps_, 1) = tra;
+  }
 
   cnt_ = 0;
   is_moving_ = true;
@@ -531,7 +580,21 @@ void TestGripperModule::moveUp()
   goal_joint_pose_["joint_1"] = up_joint_value_["joint_1"] * M_PI / 180.0;
   goal_joint_pose_["joint_2"] = up_joint_value_["joint_2"] * M_PI / 180.0;
 
-  tra_gene_tread_ = new boost::thread(boost::bind(&TestGripperModule::traGeneProcJointSpace, this));
+  int via_num = 1;
+
+  joint_via_pose_.resize(via_num, joint_name_to_id_.size());
+  joint_via_dpose_.resize(via_num, joint_name_to_id_.size());
+  joint_via_ddpose_.resize(via_num, joint_name_to_id_.size());
+
+  joint_via_pose_.fill(0.0);
+  joint_via_dpose_.fill(0.0);
+  joint_via_ddpose_.fill(0.0);
+
+  joint_via_pose_.coeffRef(0, joint_name_to_id_["joint_1"]) = via_joint_value_["joint_1"] * M_PI / 180.0;
+  joint_via_pose_.coeffRef(0, joint_name_to_id_["joint_2"]) = via_joint_value_["joint_2"] * M_PI / 180.0;
+
+//  tra_gene_tread_ = new boost::thread(boost::bind(&TestGripperModule::traGeneProcJointSpace, this));
+  tra_gene_tread_ = new boost::thread(boost::bind(&TestGripperModule::traGeneProcJointSpaceWithViaPoints, this));
   delete tra_gene_tread_;
 }
 

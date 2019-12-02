@@ -78,6 +78,7 @@ private:
   Eigen::VectorXd present_joint_position_;
   Eigen::VectorXd present_joint_velocity_;
   Eigen::VectorXd goal_joint_position_;
+  Eigen::VectorXd via_joint_position_;
 
   sensor_msgs::JointState goal_joint_pose_msg_;
   loadcell_idc::LoadCellState loadcell_state_;
@@ -87,6 +88,7 @@ private:
 
   /* movement */
   double mov_time_;
+//  double via_time_;
   int all_time_steps_;
   int cnt_;
 
@@ -99,6 +101,7 @@ private:
   void setJointPoseMsgCallback(const sensor_msgs::JointState::ConstPtr& msg);
   void setCommandCallback(const std_msgs::String::ConstPtr &msg);
   void traGeneProcJointSpace();
+  void traGeneProcJointSpaceWithViaPoints();
   void setTorqueLimit();
   bool setEndTrajectory();
 
@@ -140,6 +143,7 @@ public:
 
   std::vector<std::string> save_data_category_;
   std::map<std::string, double> down_joint_value_;
+  std::map<std::string, double> via_joint_value_;
   std::map<std::string, double> up_joint_value_;
   std::map<std::string, double> up2_joint_value_;
   std::map<std::string, double> down2_joint_value_;
@@ -147,6 +151,10 @@ public:
   std::map<std::string, double> goal_joint_pose_;
   std::map<std::string, JointStatus*> joint_data_;
   std::string current_job_;
+
+  Eigen::MatrixXd joint_via_pose_;
+  Eigen::MatrixXd joint_via_dpose_;
+  Eigen::MatrixXd joint_via_ddpose_;
 };
 
 }
