@@ -49,6 +49,7 @@ public:
     GRASP_ON_LOADCELL = 8,
     GET_LOADCELL = 9,
     WAIT_FOR_LOADCELL = 10,
+    MOVE_UP_READY = 11,
   };
 
   enum PROCESS_INDEX

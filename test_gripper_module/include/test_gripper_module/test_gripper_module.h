@@ -125,6 +125,7 @@ public:
   void handleCommand(const std::string &command);
   void getLoadcell();
   void moveUp();
+  void moveUpforReady();
   void moveUpToLoadcell();
   void moveDown();
   void moveDownFromLoadcell();
@@ -149,6 +150,7 @@ public:
   std::map<std::string, double> down2_joint_value_;
   std::map<std::string, double> gripper_value_;
   std::map<std::string, double> goal_joint_pose_;
+  std::map<std::string, double> via_joint_pose_;
   std::map<std::string, JointStatus*> joint_data_;
   std::string current_job_;
 

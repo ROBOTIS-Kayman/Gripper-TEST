@@ -34,7 +34,7 @@ TestManager::TestManager(const std::string &robot_name)
     is_loadcell_task_(false)
 {
   // set sequency
-  ready_sequency_.push_back(MOVE_UP);
+  ready_sequency_.push_back(MOVE_UP_READY);
   ready_sequency_.push_back(GRASP_OFF);
   ready_sequency_.push_back(MOVE_DOWN);
 
@@ -232,6 +232,10 @@ void TestManager::demoThread()
 
           case MOVE_DOWN_FROM_LOADCELL:
             test_module_->moveDownFromLoadcell();
+            break;
+
+          case MOVE_UP_READY:
+            test_module_->moveUpforReady();
             break;
 
           default:
