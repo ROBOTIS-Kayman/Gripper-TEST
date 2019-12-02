@@ -293,7 +293,7 @@ void TestGripperModule::traGeneProcJointSpaceWithViaPoints()
     if(via_it != via_joint_pose_.end())
     {
       via_value.coeffRef(0, 0) = via_it->second;
-      d_via_value.fill(0.0);
+      d_via_value.coeffRef(0.0) = fabs(tar_value - ini_value) / mov_time_;
       dd_via_value.fill(0.0);
     }
     else

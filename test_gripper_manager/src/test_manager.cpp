@@ -400,7 +400,7 @@ bool TestManager::readyTest()
     return false;
   }
 
-  ROS_INFO("Reagy Testing");
+  ROS_INFO("Ready Testing");
   test_count_ = -1;
   current_job_index_ = 0;
 
