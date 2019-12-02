@@ -21,7 +21,12 @@ namespace test_gripper
 {
 
 TestManager::TestManager()
-  : robot_name_("GripperTest"),
+{
+  TestManager("GripperTest");
+}
+
+TestManager::TestManager(const std::string &robot_name)
+  : robot_name_(robot_name),
     is_start_(false),
     is_ready_(false),
     loadcell_test_(false),
@@ -63,10 +68,10 @@ void TestManager::queueThread()
   ros_node.setCallbackQueue(&callback_queue);
 
   status_msg_pub_ = ros_node.advertise<robotis_controller_msgs::StatusMsg>("/robotis/status", 1);
-  total_test_time_pub_ = ros_node.advertise<std_msgs::Duration>("/demo/total_test_time", 1);
-  number_of_test_pub_ = ros_node.advertise<std_msgs::Int32>("/demo/total_test_count", 1);
+  total_test_time_pub_ = ros_node.advertise<std_msgs::Duration>("total_test_time", 1);
+  number_of_test_pub_ = ros_node.advertise<std_msgs::Int32>("total_test_count", 1);
   movement_done_sub_ = ros_node.subscribe("/robotis/test_gripper/movement_done", 1, &TestManager::movementDoneCallback, this);
-  command_sub_ = ros_node.subscribe("/demo/test_gripper/command", 1, &TestManager::demoCommandCallback, this);
+  command_sub_ = ros_node.subscribe("test_gripper_command", 1, &TestManager::demoCommandCallback, this);
 
   ros::WallDuration duration(0.1);
   while(ros_node.ok())
@@ -374,7 +379,11 @@ void TestManager::movementDoneCallback(const std_msgs::String::ConstPtr &msg)
 void TestManager::startManager()
 {
   if(test_module_ != NULL)
-    test_module_->setMode();
+  {
+//    test_module_->setMode();
+    robotis_framework::RobotisController *controller = robotis_framework::RobotisController::getInstance();
+    controller->setCtrlModule(test_module_->getModuleName());
+  }
   else
     ROS_ERROR("Test module is not set to test manager.");
 }

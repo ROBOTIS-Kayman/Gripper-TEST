@@ -59,9 +59,9 @@ bool QNodeTestGriper::init()
   test_time_ = ros::Duration(0.0);
 
   // Publisher and Subscriber
-  test_command_pub_ = nh.advertise<std_msgs::String>("/demo/test_gripper/command", 0);
-  test_count_sub_ = nh.subscribe("/demo/total_test_count", 1, &QNodeTestGriper::testCountCallback, this);
-  test_time_sub_ = nh.subscribe("/demo/total_test_time", 1, &QNodeTestGriper::testTimeCallback, this);
+  test_command_pub_ = nh.advertise<std_msgs::String>("test_gripper_command", 0);
+  test_count_sub_ = nh.subscribe("total_test_count", 1, &QNodeTestGriper::testCountCallback, this);
+  test_time_sub_ = nh.subscribe("total_test_time", 1, &QNodeTestGriper::testTimeCallback, this);
   status_msg_sub_ = nh.subscribe("/robotis/status", 1, &QNodeTestGriper::statusMsgCallback, this);
   loadcell_sub_ = nh.subscribe("loadcell_state", 1, &QNodeTestGriper::loadcellCallback, this);
 

@@ -125,7 +125,7 @@ void TestGripperModule::queueThread()
   ros::Subscriber joint_pose_msg_sub = ros_node.subscribe("/robotis/test_gripper/gripper/joint_pose_msg", 5,
                                                           &TestGripperModule::setJointPoseMsgCallback, this);
 
-  ros::Subscriber set_command_sub = ros_node.subscribe("/robotis/test_gripper/command", 1, &TestGripperModule::setCommandCallback, this);
+  ros::Subscriber set_command_sub = ros_node.subscribe("test_gripper_command", 1, &TestGripperModule::setCommandCallback, this);
 
   ros::Subscriber loadcell_sub = ros_node.subscribe("loadcell_state", 1, &TestGripperModule::loadcellStateCallback, this);
 
@@ -330,7 +330,7 @@ void TestGripperModule::process(std::map<std::string, robotis_framework::Dynamix
   if(sensor_it != sensors.end())
   gripper_voltage_ = sensor_it->second;
 
-  ROS_WARN_STREAM("current : " << gripper_current_ << "(A), voltage : " << gripper_voltage_ << "(V)");
+//  ROS_WARN_STREAM("current : " << gripper_current_ << "(A), voltage : " << gripper_voltage_ << "(V)");
 
 
   /*----- Get Joint Data & Sensor Data-----*/
@@ -646,7 +646,7 @@ void TestGripperModule::saveData(bool on_start, int sub_index)
     data_file.open (data_file_name_, std::ofstream::out | std::ofstream::app);
 
     // save index
-    data_file << "index,job,sub_index,gripper_current,";
+    data_file << "index,job,sub_index,power_consumption,";
     for (auto& it : joint_data_)
     {
       data_file << it.first << ",";

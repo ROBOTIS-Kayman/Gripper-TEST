@@ -70,10 +70,11 @@ int main(int argc, char **argv)
     usleep(100 * 1000);
 
     // test manager
-    TestManager* test_manager = new TestManager();
+    TestManager* test_manager = new TestManager(robot_name);
     test_manager->test_module_ = TestGripperModule::getInstance();
-    test_manager->setRobotName(robot_name);
-    test_manager->startManager();
+    test_manager->test_module_->setRobotName(robot_name);
+//    test_manager->startManager();
+    controller->setCtrlModule(test_manager->test_module_->getModuleName());
 
     while(ros::ok())
     {

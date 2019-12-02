@@ -28,6 +28,8 @@
 #include "robotis_controller_msgs/StatusMsg.h"
 #include "test_gripper_module/test_gripper_module.h"
 
+#include "robotis_controller/robotis_controller.h"
+
 namespace test_gripper
 {
 
@@ -64,6 +66,7 @@ public:
   };
 
   TestManager();
+  TestManager(const std::string &robot_name);
   ~TestManager();
 
   void startManager();
