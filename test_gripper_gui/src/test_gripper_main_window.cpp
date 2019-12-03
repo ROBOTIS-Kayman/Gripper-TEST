@@ -34,7 +34,6 @@ TestGripperMainWindow::TestGripperMainWindow(int argc, char** argv, QWidget *par
   QObject::connect(q_node_, SIGNAL(updateTestCount(int)), this, SLOT(updateTestCount(int)));
   QObject::connect(q_node_, SIGNAL(clearSetEndTest()), this, SLOT(clearSetEndTest()));
   QObject::connect(q_node_, SIGNAL(updateLoadcell(std::string, double)), this, SLOT(updateLoadcell(std::string, double)));
-  readSettings();
 
   // init display
   updateTestTime("0000:00:00");
@@ -43,6 +42,9 @@ TestGripperMainWindow::TestGripperMainWindow(int argc, char** argv, QWidget *par
   if(q_node_->getRobotName(robot_name))
     setTestName("RH-P12-RN Test(" + robot_name + ")");
 
+  title_ = robot_name + "_test_gripper_gui";
+
+  readSettings();
   resizeTitle();
 }
 
@@ -107,14 +109,14 @@ void TestGripperMainWindow::on_checkBox_set_stop_count_stateChanged(int state)
 
 void TestGripperMainWindow::readSettings()
 {
-  QSettings settings("Qt-Ros Package", "test_gripper_gui");
+  QSettings settings("Qt-Ros Package", title_.c_str());
   restoreGeometry(settings.value("geometry").toByteArray());
   restoreState(settings.value("windowState").toByteArray());
 }
 
 void TestGripperMainWindow::writeSettings()
 {
-  QSettings settings("Qt-Ros Package", "test_gripper_gui");
+  QSettings settings("Qt-Ros Package", title_.c_str());
   settings.setValue("geometry", saveGeometry());
   settings.setValue("windowState", saveState());
 }

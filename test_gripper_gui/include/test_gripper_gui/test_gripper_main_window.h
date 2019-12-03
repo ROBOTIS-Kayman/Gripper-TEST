@@ -82,6 +82,7 @@ private:
 
   Ui::TestGripperMainWindow *ui_;
   QNodeTestGriper *q_node_;
+  std::string title_;
 };
 
 }
