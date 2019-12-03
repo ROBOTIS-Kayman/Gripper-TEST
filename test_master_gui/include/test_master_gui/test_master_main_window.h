@@ -26,24 +26,24 @@
 #include <QString>
 #include <QSizePolicy>
 
-#include "ui_test_gripper_main_window.h"
+#include "ui_test_master_main_window.h"
 #include "q_ros_node.h"
 
 Q_DECLARE_METATYPE(std::string)
 
 namespace Ui {
-class TestGripperMainWindow;
+class TestMasterMainWindow;
 }
 
-namespace test_gripper_gui {
+namespace test_master_gui {
 
-class TestGripperMainWindow : public QMainWindow
+class TestMasterMainWindow : public QMainWindow
 {
   Q_OBJECT
 
 public:
-  explicit TestGripperMainWindow(int argc, char **argv, QWidget *parent = 0);
-  ~TestGripperMainWindow();
+  explicit TestMasterMainWindow(int argc, char **argv, QWidget *parent = 0);
+  ~TestMasterMainWindow();
 
   void readSettings();  // Load up qt program settings at startup
   void writeSettings();  // Save qt program settings when closing
@@ -80,8 +80,8 @@ private:
 //  void updatePositionUI();
   void resizeTitle();
 
-  Ui::TestGripperMainWindow *ui_;
-  QNodeTestGriper *q_node_;
+  Ui::TestMasterMainWindow *ui_;
+  QNodeTestMaster *q_node_;
 };
 
 }

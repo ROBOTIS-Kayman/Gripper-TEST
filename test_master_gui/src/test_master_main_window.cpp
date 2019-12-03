@@ -14,17 +14,17 @@
 * limitations under the License.
 *******************************************************************************/
 
-#include "../include/test_gripper_gui/test_gripper_main_window.h"
+#include "../include/test_master_gui/test_master_main_window.h"
 
-namespace test_gripper_gui {
+namespace test_master_gui {
 
-TestGripperMainWindow::TestGripperMainWindow(int argc, char** argv, QWidget *parent) :
+TestMasterMainWindow::TestMasterMainWindow(int argc, char** argv, QWidget *parent) :
   QMainWindow(parent),
-  ui_(new Ui::TestGripperMainWindow)
+  ui_(new Ui::TestMasterMainWindow)
 {
   ui_->setupUi(this);
 
-  q_node_ = new QNodeTestGriper(argc, argv);
+  q_node_ = new QNodeTestMaster(argc, argv);
   q_node_->init();
 
   qRegisterMetaType<std::string>();
@@ -46,42 +46,42 @@ TestGripperMainWindow::TestGripperMainWindow(int argc, char** argv, QWidget *par
   resizeTitle();
 }
 
-TestGripperMainWindow::~TestGripperMainWindow()
+TestMasterMainWindow::~TestMasterMainWindow()
 {
   delete ui_;
 }
 
-void TestGripperMainWindow::on_pushButton_ready_clicked(bool clicked)
+void TestMasterMainWindow::on_pushButton_ready_clicked(bool clicked)
 {
   q_node_->sendCommand("ready");
 }
 
-void TestGripperMainWindow::on_pushButton_resume_clicked(bool clicked)
+void TestMasterMainWindow::on_pushButton_resume_clicked(bool clicked)
 {
   q_node_->sendCommand("resume");
 }
 
-void TestGripperMainWindow::on_pushButton_start_clicked(bool clicked)
+void TestMasterMainWindow::on_pushButton_start_clicked(bool clicked)
 {
   q_node_->sendCommand("start");
 }
 
-void TestGripperMainWindow::on_pushButton_start_continue_clicked(bool clicked)
+void TestMasterMainWindow::on_pushButton_start_continue_clicked(bool clicked)
 {
   q_node_->sendCommand("start_continue");
 }
 
-void TestGripperMainWindow::on_pushButton_stop_clicked(bool clicked)
+void TestMasterMainWindow::on_pushButton_stop_clicked(bool clicked)
 {
   q_node_->sendCommand("stop_end");
 }
 
-void TestGripperMainWindow::on_pushButton_e_stop_clicked(bool clicked)
+void TestMasterMainWindow::on_pushButton_e_stop_clicked(bool clicked)
 {
   q_node_->sendCommand("stop");
 }
 
-void TestGripperMainWindow::on_pushButton_lock_clicked(bool checked)
+void TestMasterMainWindow::on_pushButton_lock_clicked(bool checked)
 {
   QList<QAbstractButton*> buttons = ui_->groupBox_control->findChildren<QAbstractButton *>();
 
@@ -91,7 +91,7 @@ void TestGripperMainWindow::on_pushButton_lock_clicked(bool checked)
   }
 }
 
-void TestGripperMainWindow::on_checkBox_set_stop_count_stateChanged(int state)
+void TestMasterMainWindow::on_checkBox_set_stop_count_stateChanged(int state)
 {
   if(state == Qt::Unchecked)
   {
@@ -105,33 +105,33 @@ void TestGripperMainWindow::on_checkBox_set_stop_count_stateChanged(int state)
   }
 }
 
-void TestGripperMainWindow::readSettings()
+void TestMasterMainWindow::readSettings()
 {
-  QSettings settings("Qt-Ros Package", "test_gripper_gui");
+  QSettings settings("Qt-Ros Package", "test_master_gui");
   restoreGeometry(settings.value("geometry").toByteArray());
   restoreState(settings.value("windowState").toByteArray());
 }
 
-void TestGripperMainWindow::writeSettings()
+void TestMasterMainWindow::writeSettings()
 {
-  QSettings settings("Qt-Ros Package", "test_gripper_gui");
+  QSettings settings("Qt-Ros Package", "test_master_gui");
   settings.setValue("geometry", saveGeometry());
   settings.setValue("windowState", saveState());
 }
 
-void TestGripperMainWindow::closeEvent(QCloseEvent *event)
+void TestMasterMainWindow::closeEvent(QCloseEvent *event)
 {
   writeSettings();
   QMainWindow::closeEvent(event);
 }
 
-void TestGripperMainWindow::updateLoadcell(const std::string &state, double value)
+void TestMasterMainWindow::updateLoadcell(const std::string &state, double value)
 {
   ui_->label_loadcell->setText(QString::fromStdString(state));
   ui_->spinBox_loadcell->setValue(value);
 }
 
-void TestGripperMainWindow::updateTestTime(const std::string &time)
+void TestMasterMainWindow::updateTestTime(const std::string &time)
 {
   QString q_string_time = QString::fromStdString(time);
   //  QString q_string_time("0000:00:00");
@@ -139,39 +139,39 @@ void TestGripperMainWindow::updateTestTime(const std::string &time)
   ui_->lcdNumber_test_time->display(q_string_time);
 }
 
-void TestGripperMainWindow::updateTestCount(int count)
+void TestMasterMainWindow::updateTestCount(int count)
 {
   QString q_string_count = QString::number(count);
 
   ui_->lcdNumber_test_count->display(q_string_count);
 }
 
-void TestGripperMainWindow::clearSetEndTest()
+void TestMasterMainWindow::clearSetEndTest()
 {
   ui_->checkBox_set_stop_count->click();
 }
 
-void TestGripperMainWindow::setTestName(const std::string &test_name)
+void TestMasterMainWindow::setTestName(const std::string &test_name)
 {
   ui_->label_title->setText(QString::fromStdString(test_name));
 }
 
-void TestGripperMainWindow::logToStatusBar(const std::string& message)
+void TestMasterMainWindow::logToStatusBar(const std::string& message)
 {
   QString q_message = QString::fromStdString(message);
   ui_->statusbar->showMessage(q_message);
 }
 
-void TestGripperMainWindow::resizeEvent(QResizeEvent* event)
+void TestMasterMainWindow::resizeEvent(QResizeEvent* event)
 {
   QMainWindow::resizeEvent(event);
 
   resizeTitle();
 }
 
-void TestGripperMainWindow::resizeTitle()
+void TestMasterMainWindow::resizeTitle()
 {
-  int font_size = std::min<int>(ui_->label_title->geometry().height() * 0.6, ui_->label_title->geometry().width() * 0.1);
+  int font_size = std::min<int>(ui_->label_title->geometry().height() * 0.6, ui_->label_title->geometry().width() * 0.08);
   font_size = std::max<int>(50, font_size);
   QFont font =  ui_->label_title->font();
   font.setPixelSize(font_size);

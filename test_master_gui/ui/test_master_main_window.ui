@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>TestGripperMainWindow</class>
- <widget class="QMainWindow" name="TestGripperMainWindow">
+ <class>TestMasterMainWindow</class>
+ <widget class="QMainWindow" name="TestMasterMainWindow">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -17,7 +17,7 @@
    </sizepolicy>
   </property>
   <property name="windowTitle">
-   <string>Gripper Test</string>
+   <string>Gripper Test MASTER</string>
   </property>
   <property name="windowIcon">
    <iconset>
@@ -47,7 +47,7 @@
        </font>
       </property>
       <property name="text">
-       <string>RH-P12-RN Test</string>
+       <string>RH-P12-RN Test(MASTER)</string>
       </property>
       <property name="textFormat">
        <enum>Qt::AutoText</enum>
@@ -289,6 +289,9 @@
        </item>
        <item row="1" column="1">
         <widget class="QSpinBox" name="spinBox_stop_count">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
          <property name="sizePolicy">
           <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
            <horstretch>0</horstretch>
@@ -316,6 +319,9 @@
        </item>
        <item row="1" column="0">
         <widget class="QCheckBox" name="checkBox_set_stop_count">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
          <property name="sizePolicy">
           <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
            <horstretch>0</horstretch>
@@ -403,6 +409,9 @@
        </item>
        <item row="0" column="1">
         <widget class="QDoubleSpinBox" name="spinBox_loadcell">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
          <property name="sizePolicy">
           <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
            <horstretch>0</horstretch>
