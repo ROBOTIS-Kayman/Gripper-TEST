@@ -7,7 +7,7 @@
    
   <!-- TEST-Gripper GUI -->
   <node name="test_master_gui" pkg="test_master_gui" type="test_master_gui" output="screen">
-    <param name="robot_list" value="$(arg first_robot),$(arg second_robot),$(arg third_robot)"/>
+    <param name="robot_list" value="$(arg first_robot), $(arg second_robot), $(arg third_robot)"/>
   </node>
 
 </launch>

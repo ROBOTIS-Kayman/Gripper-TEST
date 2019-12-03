@@ -57,19 +57,7 @@ bool QNodeTestMaster::init()
 
   // parsing robot list from ros parameter
   std::string robots = p_nh.param<std::string>("robot_list", "");
-
-  robots.erase(robots.find_last_not_of(" \n\r\t")+1); // trim
-  std::string delimiter = ",";
-  size_t pos = 0;
-  std::string token;
-  while ((pos = robots.find(delimiter)) != std::string::npos) {
-      token = robots.substr(0, pos);
-      if(!token.empty())
-        robot_list_.push_back(token);
-      robots.erase(0, pos + delimiter.length());
-  }
-  if(!robots.empty())
-    robot_list_.push_back(robots);
+  boost::split(robot_list_, robots, boost::is_any_of(","));
 
   // initialize variable
   test_count_ = 0;
@@ -83,6 +71,10 @@ bool QNodeTestMaster::init()
 //  loadcell_sub_ = nh.subscribe("loadcell_state", 1, &QNodeTestMaster::loadcellCallback, this);
   for(auto robot_it = robot_list_.begin(); robot_it != robot_list_.end(); ++robot_it)
   {
+    boost::algorithm::trim(*robot_it);
+    if(robot_it->empty())
+      continue;
+
     std::string topic_name = *robot_it + "/test_gripper_command";
     ros::Publisher command_pub = nh.advertise<std_msgs::String>(topic_name, 0);
     test_command_pub_list_.push_back(command_pub);

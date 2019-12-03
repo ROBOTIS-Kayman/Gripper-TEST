@@ -20,6 +20,8 @@
 #include <cstdio>
 #include <fstream>
 #include <QThread>
+#include <boost/algorithm/string/trim.hpp>
+#include <boost/algorithm/string.hpp>
 
 #include <ros/ros.h>
 #include <ros/package.h>
