@@ -46,9 +46,11 @@ public:
 
   bool init();
   void run();
-  void sendCommand(const std::string &command);
+  void sendCommandToAll(const std::string &command);
+  void sendCommand(const std::string &robot_name, const std::string &command);
   void setEndCount(bool is_set, int end_count) {set_end_count_ = is_set; end_test_count_ = end_count; }
   bool getRobotName(std::string &robot_name) { robot_name = robot_name_; return !robot_name_.empty(); }
+  void getRobotList(std::vector<std::string> &robot_list) { robot_list = robot_list_; }
 
 public Q_SLOTS:
 //  void changeControlRobot(int index);
@@ -71,13 +73,13 @@ private:
   int end_test_count_;
   std::string robot_name_;
 
-  ros::Publisher test_command_pub_;
+//  ros::Publisher test_command_pub_;
   ros::Subscriber test_count_sub_;
   ros::Subscriber test_time_sub_;
   ros::Subscriber status_msg_sub_;
   ros::Subscriber loadcell_sub_;
 
-  std::vector<ros::Publisher> test_command_pub_list_;
+  std::map<std::string, ros::Publisher> test_command_pub_list_;
   std::vector<std::string> robot_list_;
 
   void testCountCallback(const std_msgs::Int32::ConstPtr &msg);

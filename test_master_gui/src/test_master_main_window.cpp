@@ -32,8 +32,8 @@ TestMasterMainWindow::TestMasterMainWindow(int argc, char** argv, QWidget *paren
   QObject::connect(q_node_, SIGNAL(log(std::string)), this, SLOT(logToStatusBar(std::string)));
   QObject::connect(q_node_, SIGNAL(updateTestTime(std::string)), this, SLOT(updateTestTime(std::string)));
   QObject::connect(q_node_, SIGNAL(updateTestCount(int)), this, SLOT(updateTestCount(int)));
-  QObject::connect(q_node_, SIGNAL(clearSetEndTest()), this, SLOT(clearSetEndTest()));
-  QObject::connect(q_node_, SIGNAL(updateLoadcell(std::string, double)), this, SLOT(updateLoadcell(std::string, double)));
+//  QObject::connect(q_node_, SIGNAL(clearSetEndTest()), this, SLOT(clearSetEndTest()));
+//  QObject::connect(q_node_, SIGNAL(updateLoadcell(std::string, double)), this, SLOT(updateLoadcell(std::string, double)));
   readSettings();
 
   // init display
@@ -44,6 +44,16 @@ TestMasterMainWindow::TestMasterMainWindow(int argc, char** argv, QWidget *paren
     setTestName("RH-P12-RN Test(" + robot_name + ")");
 
   resizeTitle();
+
+  // load robot list
+  std::vector<std::string> robot_list;
+  q_node_->getRobotList(robot_list);
+
+  for(auto r_it = robot_list.begin(); r_it != robot_list.end(); ++r_it)
+  {
+    QString item = tr((*r_it).c_str());
+    ui_->comboBox_robot->addItem(item);
+  }
 }
 
 TestMasterMainWindow::~TestMasterMainWindow()
@@ -53,57 +63,65 @@ TestMasterMainWindow::~TestMasterMainWindow()
 
 void TestMasterMainWindow::on_pushButton_ready_clicked(bool clicked)
 {
-  q_node_->sendCommand("ready");
+  q_node_->sendCommandToAll("ready");
 }
 
 void TestMasterMainWindow::on_pushButton_resume_clicked(bool clicked)
 {
-  q_node_->sendCommand("resume");
+  q_node_->sendCommandToAll("resume");
 }
 
-void TestMasterMainWindow::on_pushButton_start_clicked(bool clicked)
-{
-  q_node_->sendCommand("start");
-}
+//void TestMasterMainWindow::on_pushButton_start_clicked(bool clicked)
+//{
+//  q_node_->sendCommandToAll("start");
+//}
 
 void TestMasterMainWindow::on_pushButton_start_continue_clicked(bool clicked)
 {
-  q_node_->sendCommand("start_continue");
+  q_node_->sendCommandToAll("start_continue");
 }
 
 void TestMasterMainWindow::on_pushButton_stop_clicked(bool clicked)
 {
-  q_node_->sendCommand("stop_end");
+  q_node_->sendCommandToAll("stop_end");
 }
 
 void TestMasterMainWindow::on_pushButton_e_stop_clicked(bool clicked)
 {
-  q_node_->sendCommand("stop");
+  q_node_->sendCommandToAll("stop");
 }
 
-void TestMasterMainWindow::on_pushButton_lock_clicked(bool checked)
+//void TestMasterMainWindow::on_pushButton_lock_clicked(bool checked)
+//{
+//  QList<QAbstractButton*> buttons = ui_->groupBox_control->findChildren<QAbstractButton *>();
+
+//  foreach(QAbstractButton* button, buttons)
+//  {
+//    button->setEnabled(!checked);
+//  }
+//}
+
+void TestMasterMainWindow::on_pushButton_loadcell_command_clicked(bool checked)
 {
-  QList<QAbstractButton*> buttons = ui_->groupBox_control->findChildren<QAbstractButton *>();
+  std::string robot = ui_->comboBox_robot->currentText().toStdString();
+  std::string command = ui_->comboBox_command->currentText().toStdString();
 
-  foreach(QAbstractButton* button, buttons)
-  {
-    button->setEnabled(!checked);
-  }
+  q_node_->sendCommand(robot, command);
 }
 
-void TestMasterMainWindow::on_checkBox_set_stop_count_stateChanged(int state)
-{
-  if(state == Qt::Unchecked)
-  {
-    ui_->spinBox_stop_count->setReadOnly(false);
-    q_node_->setEndCount(false, 0);
-  }
-  else if(state == Qt::Checked)
-  {
-    ui_->spinBox_stop_count->setReadOnly(true);
-    q_node_->setEndCount(true, ui_->spinBox_stop_count->value());
-  }
-}
+//void TestMasterMainWindow::on_checkBox_set_stop_count_stateChanged(int state)
+//{
+//  if(state == Qt::Unchecked)
+//  {
+//    ui_->spinBox_stop_count->setReadOnly(false);
+//    q_node_->setEndCount(false, 0);
+//  }
+//  else if(state == Qt::Checked)
+//  {
+//    ui_->spinBox_stop_count->setReadOnly(true);
+//    q_node_->setEndCount(true, ui_->spinBox_stop_count->value());
+//  }
+//}
 
 void TestMasterMainWindow::readSettings()
 {
@@ -125,11 +143,11 @@ void TestMasterMainWindow::closeEvent(QCloseEvent *event)
   QMainWindow::closeEvent(event);
 }
 
-void TestMasterMainWindow::updateLoadcell(const std::string &state, double value)
-{
-  ui_->label_loadcell->setText(QString::fromStdString(state));
-  ui_->spinBox_loadcell->setValue(value);
-}
+//void TestMasterMainWindow::updateLoadcell(const std::string &state, double value)
+//{
+//  ui_->label_loadcell->setText(QString::fromStdString(state));
+//  ui_->spinBox_loadcell->setValue(value);
+//}
 
 void TestMasterMainWindow::updateTestTime(const std::string &time)
 {
@@ -146,10 +164,10 @@ void TestMasterMainWindow::updateTestCount(int count)
   ui_->lcdNumber_test_count->display(q_string_count);
 }
 
-void TestMasterMainWindow::clearSetEndTest()
-{
-  ui_->checkBox_set_stop_count->click();
-}
+//void TestMasterMainWindow::clearSetEndTest()
+//{
+//  ui_->checkBox_set_stop_count->click();
+//}
 
 void TestMasterMainWindow::setTestName(const std::string &test_name)
 {

@@ -64,20 +64,27 @@ bool QNodeTestMaster::init()
   test_time_ = ros::Duration(0.0);
 
   // Publisher and Subscriber
-//  test_command_pub_ = nh.advertise<std_msgs::String>("test_gripper_command", 0);
-//  test_count_sub_ = nh.subscribe("total_test_count", 1, &QNodeTestMaster::testCountCallback, this);
-//  test_time_sub_ = nh.subscribe("total_test_time", 1, &QNodeTestMaster::testTimeCallback, this);
-//  status_msg_sub_ = nh.subscribe("/robotis/status", 1, &QNodeTestMaster::statusMsgCallback, this);
-//  loadcell_sub_ = nh.subscribe("loadcell_state", 1, &QNodeTestMaster::loadcellCallback, this);
-  for(auto robot_it = robot_list_.begin(); robot_it != robot_list_.end(); ++robot_it)
+  //  test_command_pub_ = nh.advertise<std_msgs::String>("test_gripper_command", 0);
+  //  test_count_sub_ = nh.subscribe("total_test_count", 1, &QNodeTestMaster::testCountCallback, this);
+  //  test_time_sub_ = nh.subscribe("total_test_time", 1, &QNodeTestMaster::testTimeCallback, this);
+  //  status_msg_sub_ = nh.subscribe("/robotis/status", 1, &QNodeTestMaster::statusMsgCallback, this);
+  //  loadcell_sub_ = nh.subscribe("loadcell_state", 1, &QNodeTestMaster::loadcellCallback, this);
+
+  for(auto robot_it = robot_list_.begin(); robot_it != robot_list_.end(); )
   {
     boost::algorithm::trim(*robot_it);
     if(robot_it->empty())
-      continue;
-
-    std::string topic_name = *robot_it + "/test_gripper_command";
-    ros::Publisher command_pub = nh.advertise<std_msgs::String>(topic_name, 0);
-    test_command_pub_list_.push_back(command_pub);
+    {
+      robot_it = robot_list_.erase(robot_it);
+    }
+    else
+    {
+      std::string topic_name = *robot_it + "/test_gripper_command";
+      ros::Publisher command_pub = nh.advertise<std_msgs::String>(topic_name, 0);
+      //      test_command_pub_list_.push_back(command_pub);
+      test_command_pub_list_[*robot_it] = command_pub;
+      robot_it++;
+    }
   }
 
   // start thread
@@ -99,18 +106,38 @@ void QNodeTestMaster::run()
   Q_EMIT shutdown_ros();
 }
 
-void QNodeTestMaster::sendCommand(const std::string &command)
+void QNodeTestMaster::sendCommandToAll(const std::string &command)
 {
-   std_msgs::String command_msg;
-   command_msg.data = command;
+  std_msgs::String command_msg;
+  command_msg.data = command;
 
-   //publish
-//   test_command_pub_.publish(command_msg);
+  for(auto pub_it = test_command_pub_list_.begin(); pub_it != test_command_pub_list_.end(); ++pub_it)
+  {
+    pub_it->second.publish(command_msg);
+    //    (*pub_it).publish(command_msg);
+  }
+}
 
-   for(auto pub_it = test_command_pub_list_.begin(); pub_it != test_command_pub_list_.end(); ++pub_it)
-   {
-     (*pub_it).publish(command_msg);
-   }
+void QNodeTestMaster::sendCommand(const std::string &robot_name, const std::string &command)
+{
+  std_msgs::String command_msg;
+  command_msg.data = command;
+
+  //publish
+  if(robot_name == "all")
+  {
+    for(auto pub_it = test_command_pub_list_.begin(); pub_it != test_command_pub_list_.end(); ++pub_it)
+    {
+      pub_it->second.publish(command_msg);
+      //    (*pub_it).publish(command_msg);
+    }
+  }
+  else
+  {
+    auto find_it = test_command_pub_list_.find(robot_name);
+    if(find_it != test_command_pub_list_.end())
+      find_it->second.publish(command_msg);
+  }
 }
 
 void QNodeTestMaster::testCountCallback(const std_msgs::Int32::ConstPtr &msg)
@@ -119,19 +146,19 @@ void QNodeTestMaster::testCountCallback(const std_msgs::Int32::ConstPtr &msg)
   test_count_ = msg->data;
 
   // check to set end count
-//  if(set_end_count_ == true && test_count_ == (end_test_count_ - 1))
+  //  if(set_end_count_ == true && test_count_ == (end_test_count_ - 1))
   if(set_end_count_ == true && test_count_ == end_test_count_)
   {
     // stop next round
-    sendCommand("stop_end");
+    sendCommandToAll("stop_end");
 
     Q_EMIT clearSetEndTest();
   }
 
-//  if(set_end_count_ == true && test_count_ == end_test_count_)
-//  {
-//    Q_EMIT clearSetEndTest();
-//  }
+  //  if(set_end_count_ == true && test_count_ == end_test_count_)
+  //  {
+  //    Q_EMIT clearSetEndTest();
+  //  }
 
   // update ui
   Q_EMIT updateTestCount(test_count_);
