@@ -1,0 +1,13 @@
+<?xml version="1.0" ?>
+
+<launch>
+  <arg name="first_robot"  default="Gripper_1"/>
+  <arg name="second_robot" default="Gripper_2"/>
+  <arg name="third_robot"  default="Gripper_3"/>
+   
+  <!-- TEST-Gripper GUI -->
+  <node name="test_master_gui" pkg="test_master_gui" type="test_master_gui" output="screen">
+    <param name="robot_list" value="$(arg first_robot), $(arg second_robot), $(arg third_robot)"/>
+  </node>
+
+</launch>

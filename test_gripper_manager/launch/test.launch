@@ -1,0 +1,34 @@
+<?xml version="1.0" ?>
+
+<launch>
+  <arg name="first_robot"  default="Gripper_1"/>
+  <arg name="second_robot" default="Gripper_2"/>
+  <arg name="third_robot"  default="Gripper_3"/>
+  
+  <!-- first gripper to test -->
+  <group ns = "$(arg first_robot)">
+    <include file="$(find test_gripper_manager)/launch/gripper_manager.launch">
+      <arg name="robot_name" value="$(arg first_robot)"/>
+    </include>
+  </group>
+  
+  <!-- second gripper to test -->
+  <group ns = "$(arg second_robot)">
+    <include file="$(find test_gripper_manager)/launch/gripper_manager.launch">
+      <arg name="robot_name" value="$(arg second_robot)"/>
+    </include>
+  </group>
+  
+  <!-- third gripper to test -->
+  <group ns = "$(arg third_robot)">
+    <include file="$(find test_gripper_manager)/launch/gripper_manager.launch">
+      <arg name="robot_name" value="$(arg third_robot)"/>
+    </include>
+  </group>
+  
+  <!-- MASTER GUI -->
+  <node name="test_master_gui" pkg="test_master_gui" type="test_master_gui" output="screen">
+    <param name="robot_list" value="$(arg first_robot),$(arg second_robot),$(arg third_robot)"/>
+  </node>
+
+</launch>

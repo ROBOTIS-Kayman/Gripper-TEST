@@ -21,13 +21,20 @@ namespace test_gripper
 {
 
 TestManager::TestManager()
-  : is_start_(false),
+{
+  TestManager("GripperTest");
+}
+
+TestManager::TestManager(const std::string &robot_name)
+  : robot_name_(robot_name),
+    is_start_(false),
     is_ready_(false),
+    loadcell_test_(false),
     current_process_(NONE),
     is_loadcell_task_(false)
 {
   // set sequency
-  ready_sequency_.push_back(MOVE_UP);
+  ready_sequency_.push_back(MOVE_UP_READY);
   ready_sequency_.push_back(GRASP_OFF);
   ready_sequency_.push_back(MOVE_DOWN);
 
@@ -61,10 +68,10 @@ void TestManager::queueThread()
   ros_node.setCallbackQueue(&callback_queue);
 
   status_msg_pub_ = ros_node.advertise<robotis_controller_msgs::StatusMsg>("/robotis/status", 1);
-  total_test_time_pub_ = ros_node.advertise<std_msgs::Duration>("/demo/total_test_time", 1);
-  number_of_test_pub_ = ros_node.advertise<std_msgs::Int32>("/demo/total_test_count", 1);
+  total_test_time_pub_ = ros_node.advertise<std_msgs::Duration>("total_test_time", 1);
+  number_of_test_pub_ = ros_node.advertise<std_msgs::Int32>("total_test_count", 1);
   movement_done_sub_ = ros_node.subscribe("/robotis/test_gripper/movement_done", 1, &TestManager::movementDoneCallback, this);
-  command_sub_ = ros_node.subscribe("/demo/test_gripper/command", 1, &TestManager::demoCommandCallback, this);
+  command_sub_ = ros_node.subscribe("test_gripper_command", 1, &TestManager::demoCommandCallback, this);
 
   ros::WallDuration duration(0.1);
   while(ros_node.ok())
@@ -227,6 +234,10 @@ void TestManager::demoThread()
             test_module_->moveDownFromLoadcell();
             break;
 
+          case MOVE_UP_READY:
+            test_module_->moveUpforReady();
+            break;
+
           default:
             ROS_WARN("Invalid Task");
             current_process_ = ON_WAIT_DONE;
@@ -246,7 +257,7 @@ void TestManager::demoThread()
             savePrevTestData();
 
             // check time to test loadcell
-            if((test_count_ % LOADCELLTASK) == 0)
+            if((loadcell_test_ == true ) && ((test_count_ % LOADCELLTASK) == 0))
             {
               if(is_loadcell_task_ == false)
               {
@@ -372,7 +383,11 @@ void TestManager::movementDoneCallback(const std_msgs::String::ConstPtr &msg)
 void TestManager::startManager()
 {
   if(test_module_ != NULL)
-    test_module_->setMode();
+  {
+//    test_module_->setMode();
+    robotis_framework::RobotisController *controller = robotis_framework::RobotisController::getInstance();
+    controller->setCtrlModule(test_module_->getModuleName());
+  }
   else
     ROS_ERROR("Test module is not set to test manager.");
 }
@@ -385,7 +400,7 @@ bool TestManager::readyTest()
     return false;
   }
 
-  ROS_INFO("Reagy Testing");
+  ROS_INFO("Ready Testing");
   test_count_ = -1;
   current_job_index_ = 0;
 
@@ -507,7 +522,7 @@ bool TestManager::startContinueTest()
 
 bool TestManager::getPrevTestData(std::string &save_path, int &test_count, double &test_time)
 {
-  std::string file_name = test_module_->getDataFilePath() + "prev_test.yaml";
+  std::string file_name = test_module_->getDataFilePath() + robot_name_ + "_prev_test.yaml";
 
   // get prev test data
   YAML::Node doc;
@@ -538,7 +553,7 @@ void TestManager::savePrevTestData()
     return;
   }
 
-  std::string file_name = test_module_->getDataFilePath() + "prev_test.yaml";
+  std::string file_name = test_module_->getDataFilePath() + robot_name_ + "_prev_test.yaml";
 
   std::string data_file_name = test_module_->getDataFileName();
 
@@ -552,6 +567,14 @@ void TestManager::savePrevTestData()
   std::ofstream fout(file_name.c_str());
   fout << yaml_out.c_str();  // dump it back into the file
   return;
+}
+
+void TestManager::setRobotName(const std::string& robot_name)
+{
+  robot_name_ = robot_name;
+
+  if(test_module_ != NULL)
+    test_module_->setRobotName(robot_name);
 }
 
 }

@@ -34,11 +34,18 @@ TestGripperMainWindow::TestGripperMainWindow(int argc, char** argv, QWidget *par
   QObject::connect(q_node_, SIGNAL(updateTestCount(int)), this, SLOT(updateTestCount(int)));
   QObject::connect(q_node_, SIGNAL(clearSetEndTest()), this, SLOT(clearSetEndTest()));
   QObject::connect(q_node_, SIGNAL(updateLoadcell(std::string, double)), this, SLOT(updateLoadcell(std::string, double)));
-  readSettings();
 
   // init display
   updateTestTime("0000:00:00");
   updateTestCount(0);
+  std::string robot_name;
+  if(q_node_->getRobotName(robot_name))
+    setTestName("RH-P12-RN Test(" + robot_name + ")");
+
+  title_ = robot_name + "_test_gripper_gui";
+
+  readSettings();
+  resizeTitle();
 }
 
 TestGripperMainWindow::~TestGripperMainWindow()
@@ -76,6 +83,16 @@ void TestGripperMainWindow::on_pushButton_e_stop_clicked(bool clicked)
   q_node_->sendCommand("stop");
 }
 
+void TestGripperMainWindow::on_pushButton_lock_clicked(bool checked)
+{
+  QList<QAbstractButton*> buttons = ui_->groupBox_control->findChildren<QAbstractButton *>();
+
+  foreach(QAbstractButton* button, buttons)
+  {
+    button->setEnabled(!checked);
+  }
+}
+
 void TestGripperMainWindow::on_checkBox_set_stop_count_stateChanged(int state)
 {
   if(state == Qt::Unchecked)
@@ -92,14 +109,14 @@ void TestGripperMainWindow::on_checkBox_set_stop_count_stateChanged(int state)
 
 void TestGripperMainWindow::readSettings()
 {
-  QSettings settings("Qt-Ros Package", "test_gripper_gui");
+  QSettings settings("Qt-Ros Package", title_.c_str());
   restoreGeometry(settings.value("geometry").toByteArray());
   restoreState(settings.value("windowState").toByteArray());
 }
 
 void TestGripperMainWindow::writeSettings()
 {
-  QSettings settings("Qt-Ros Package", "test_gripper_gui");
+  QSettings settings("Qt-Ros Package", title_.c_str());
   settings.setValue("geometry", saveGeometry());
   settings.setValue("windowState", saveState());
 }
@@ -119,7 +136,7 @@ void TestGripperMainWindow::updateLoadcell(const std::string &state, double valu
 void TestGripperMainWindow::updateTestTime(const std::string &time)
 {
   QString q_string_time = QString::fromStdString(time);
-//  QString q_string_time("0000:00:00");
+  //  QString q_string_time("0000:00:00");
 
   ui_->lcdNumber_test_time->display(q_string_time);
 }
@@ -136,11 +153,33 @@ void TestGripperMainWindow::clearSetEndTest()
   ui_->checkBox_set_stop_count->click();
 }
 
+void TestGripperMainWindow::setTestName(const std::string &test_name)
+{
+  ui_->label_title->setText(QString::fromStdString(test_name));
+}
+
 void TestGripperMainWindow::logToStatusBar(const std::string& message)
 {
   QString q_message = QString::fromStdString(message);
   ui_->statusbar->showMessage(q_message);
 }
+
+void TestGripperMainWindow::resizeEvent(QResizeEvent* event)
+{
+  QMainWindow::resizeEvent(event);
+
+  resizeTitle();
+}
+
+void TestGripperMainWindow::resizeTitle()
+{
+  int font_size = std::min<int>(ui_->label_title->geometry().height() * 0.6, ui_->label_title->geometry().width() * 0.1);
+  font_size = std::max<int>(50, font_size);
+  QFont font =  ui_->label_title->font();
+  font.setPixelSize(font_size);
+  ui_->label_title->setFont(font);
+}
+
 
 }
 

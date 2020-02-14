@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>TestGripperMainWindow</class>
- <widget class="QMainWindow" name="TestGripperMainWindow">
+ <class>TestMasterMainWindow</class>
+ <widget class="QMainWindow" name="TestMasterMainWindow">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -17,7 +17,7 @@
    </sizepolicy>
   </property>
   <property name="windowTitle">
-   <string>Gripper Test</string>
+   <string>Gripper Test MASTER</string>
   </property>
   <property name="windowIcon">
    <iconset>
@@ -47,7 +47,7 @@
        </font>
       </property>
       <property name="text">
-       <string>RH-P12-RN Test</string>
+       <string>RH-P12-RN Test(MASTER)</string>
       </property>
       <property name="textFormat">
        <enum>Qt::AutoText</enum>
@@ -91,6 +91,9 @@
     </item>
     <item>
      <widget class="QGroupBox" name="groupBox_test_time">
+      <property name="enabled">
+       <bool>false</bool>
+      </property>
       <property name="sizePolicy">
        <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
         <horstretch>0</horstretch>
@@ -160,6 +163,9 @@
       <layout class="QGridLayout" name="gridLayout_3">
        <item row="0" column="0">
         <widget class="QLCDNumber" name="lcdNumber_test_count">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
          <property name="sizePolicy">
           <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
            <horstretch>0</horstretch>
@@ -205,62 +211,8 @@
       <property name="title">
        <string>Control</string>
       </property>
-      <layout class="QGridLayout" name="gridLayout_2" rowstretch="1,1" columnstretch="1,1,1,1,1,1">
-       <item row="1" column="2" colspan="2">
-        <widget class="QPushButton" name="pushButton_start_continue">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="minimumSize">
-          <size>
-           <width>0</width>
-           <height>20</height>
-          </size>
-         </property>
-         <property name="font">
-          <font>
-           <pointsize>10</pointsize>
-           <weight>50</weight>
-           <bold>false</bold>
-           <kerning>false</kerning>
-          </font>
-         </property>
-         <property name="text">
-          <string>START</string>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="4" colspan="2">
-        <widget class="QPushButton" name="pushButton_resume">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="minimumSize">
-          <size>
-           <width>0</width>
-           <height>20</height>
-          </size>
-         </property>
-         <property name="font">
-          <font>
-           <pointsize>10</pointsize>
-           <weight>50</weight>
-           <bold>false</bold>
-           <kerning>false</kerning>
-          </font>
-         </property>
-         <property name="text">
-          <string>Resume</string>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="4" colspan="2">
+      <layout class="QGridLayout" name="gridLayout_2" rowstretch="1,1" columnstretch="1,1,1,1,1,1,1">
+       <item row="0" column="5" colspan="2">
         <widget class="QPushButton" name="pushButton_stop">
          <property name="sizePolicy">
           <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
@@ -287,35 +239,8 @@
          </property>
         </widget>
        </item>
-       <item row="1" column="1">
-        <widget class="QSpinBox" name="spinBox_stop_count">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="minimumSize">
-          <size>
-           <width>0</width>
-           <height>20</height>
-          </size>
-         </property>
-         <property name="font">
-          <font>
-           <pointsize>10</pointsize>
-           <weight>50</weight>
-           <bold>false</bold>
-           <kerning>false</kerning>
-          </font>
-         </property>
-         <property name="maximum">
-          <number>10000000</number>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="0">
-        <widget class="QCheckBox" name="checkBox_set_stop_count">
+       <item row="1" column="3" colspan="2">
+        <widget class="QPushButton" name="pushButton_start_continue">
          <property name="sizePolicy">
           <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
            <horstretch>0</horstretch>
@@ -337,11 +262,11 @@
           </font>
          </property>
          <property name="text">
-          <string>Set Stop-Count</string>
+          <string>START</string>
          </property>
         </widget>
        </item>
-       <item row="0" column="2" colspan="2">
+       <item row="0" column="3" colspan="2">
         <widget class="QPushButton" name="pushButton_ready">
          <property name="sizePolicy">
           <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
@@ -368,6 +293,40 @@
          </property>
         </widget>
        </item>
+       <item row="0" column="2" rowspan="2">
+        <widget class="Line" name="line">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="5" colspan="2">
+        <widget class="QPushButton" name="pushButton_resume">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>20</height>
+          </size>
+         </property>
+         <property name="font">
+          <font>
+           <pointsize>10</pointsize>
+           <weight>50</weight>
+           <bold>false</bold>
+           <kerning>false</kerning>
+          </font>
+         </property>
+         <property name="text">
+          <string>Resume</string>
+         </property>
+        </widget>
+       </item>
        <item row="0" column="0">
         <widget class="QLabel" name="label_loadcell">
          <property name="sizePolicy">
@@ -391,7 +350,7 @@
           </font>
          </property>
          <property name="text">
-          <string>STABLE</string>
+          <string>LOADCELL</string>
          </property>
          <property name="alignment">
           <set>Qt::AlignCenter</set>
@@ -401,40 +360,60 @@
          </property>
         </widget>
        </item>
-       <item row="0" column="1">
-        <widget class="QDoubleSpinBox" name="spinBox_loadcell">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="minimumSize">
-          <size>
-           <width>0</width>
-           <height>20</height>
-          </size>
-         </property>
+       <item row="1" column="1">
+        <widget class="QPushButton" name="pushButton_loadcell_command">
          <property name="font">
           <font>
            <pointsize>10</pointsize>
            <weight>50</weight>
            <bold>false</bold>
-           <kerning>false</kerning>
           </font>
          </property>
-         <property name="readOnly">
-          <bool>true</bool>
+         <property name="text">
+          <string>SEND</string>
          </property>
-         <property name="decimals">
-          <number>5</number>
+        </widget>
+       </item>
+       <item row="0" column="1">
+        <widget class="QComboBox" name="comboBox_robot">
+         <property name="font">
+          <font>
+           <pointsize>10</pointsize>
+           <weight>50</weight>
+           <bold>false</bold>
+          </font>
          </property>
-         <property name="minimum">
-          <double>-1000.000000000000000</double>
+        </widget>
+       </item>
+       <item row="1" column="0">
+        <widget class="QComboBox" name="comboBox_command">
+         <property name="font">
+          <font>
+           <pointsize>10</pointsize>
+           <weight>50</weight>
+           <bold>false</bold>
+          </font>
          </property>
-         <property name="maximum">
-          <double>1000.000000000000000</double>
-         </property>
+         <item>
+          <property name="text">
+           <string>move_up_to_loadcell</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>move_down</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>gripper_on</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>gripper_off</string>
+          </property>
+         </item>
         </widget>
        </item>
       </layout>

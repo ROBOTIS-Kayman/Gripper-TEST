@@ -14,20 +14,20 @@
 * limitations under the License.
 *******************************************************************************/
 
-#include "test_gripper_manager/test_manager.h"
+//#include "test_gripper_manager/test_manager.h"
 #include "robotis_controller/robotis_controller.h"
 
 /* Sensor Module Header */
 #include "powerxel_module/powerxel_module.h"
+#include "test_gripper_module/test_gripper_module.h"
 
 /* Motion Module Header */
-#include "test_gripper_module/test_gripper_module.h"
 
 using namespace test_gripper;
 
 int main(int argc, char **argv)
 {
-    ros::init(argc, argv, "test_gripper_manager");
+    ros::init(argc, argv, "test_powerxel_manager");
     ros::NodeHandle nh;
     ros::NodeHandle priv_nh("~");
 
@@ -69,12 +69,13 @@ int main(int argc, char **argv)
 
     usleep(100 * 1000);
 
+    controller->setCtrlModule("test_gripper_module");
+
     // test manager
-    TestManager* test_manager = new TestManager(robot_name);
-    test_manager->test_module_ = TestGripperModule::getInstance();
-    test_manager->test_module_->setRobotName(robot_name);
+//    TestManager* test_manager = new TestManager();
+//    test_manager->test_module_ = TestGripperModule::getInstance();
+//    test_manager->setRobotName(robot_name);
 //    test_manager->startManager();
-    controller->setCtrlModule(test_manager->test_module_->getModuleName());
 
     while(ros::ok())
     {

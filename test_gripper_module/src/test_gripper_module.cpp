@@ -20,12 +20,14 @@
 using namespace test_gripper;
 
 TestGripperModule::TestGripperModule()
-  : control_cycle_sec_(0.008),
-    is_moving_(false),
-    current_job_("none"),
+  : robot_name_("GripperTest"),
     test_count_(0),
     is_error_(false),
-    get_loadcell_(false)
+    control_cycle_sec_(0.008),
+    get_loadcell_(false),
+    is_moving_(false),
+    gripper_current_last_task_(0.0),
+    current_job_("none")
 {
   enable_       = false;
   module_name_  = "test_gripper_module";
@@ -69,6 +71,14 @@ TestGripperModule::TestGripperModule()
   down_joint_value_["joint_2"] = 15.0;
   down_joint_value_["gripper"] = 0.0;   // off
 
+  // via point
+  via_joint_value_["joint_1"] = 20.0;
+  via_joint_value_["joint_2"] = 25.0;
+
+  // forward point
+  forward_joint_value_["joint_1"] = 0.0;
+  forward_joint_value_["joint_2"] = -45.0;
+
   // hold on
   up_joint_value_["joint_1"] = -30.0;
   up_joint_value_["joint_2"] = 75.0;
@@ -89,6 +99,7 @@ TestGripperModule::TestGripperModule()
   present_joint_position_ = Eigen::VectorXd::Zero(result_.size());
   present_joint_velocity_ = Eigen::VectorXd::Zero(result_.size());
   goal_joint_position_    = Eigen::VectorXd::Zero(result_.size());
+  via_joint_position_     = Eigen::VectorXd::Zero(result_.size());
 }
 
 TestGripperModule::~TestGripperModule()
@@ -123,7 +134,7 @@ void TestGripperModule::queueThread()
   ros::Subscriber joint_pose_msg_sub = ros_node.subscribe("/robotis/test_gripper/gripper/joint_pose_msg", 5,
                                                           &TestGripperModule::setJointPoseMsgCallback, this);
 
-  ros::Subscriber set_command_sub = ros_node.subscribe("/robotis/test_gripper/command", 1, &TestGripperModule::setCommandCallback, this);
+  ros::Subscriber set_command_sub = ros_node.subscribe("test_gripper_command", 1, &TestGripperModule::setCommandCallback, this);
 
   ros::Subscriber loadcell_sub = ros_node.subscribe("loadcell_state", 1, &TestGripperModule::loadcellStateCallback, this);
 
@@ -250,6 +261,66 @@ void TestGripperModule::traGeneProcJointSpace()
   ROS_INFO_STREAM("[ready] make trajectory : " << current_job_);
 }
 
+void TestGripperModule::traGeneProcJointSpaceWithViaPoints()
+{
+  mov_time_ = 2.0;
+  int via_num = 1;
+  Eigen::MatrixXd via_time;
+  via_time.resize(via_num, 1);
+  via_time.coeffRef(0, 0) = 0.75;
+
+  int all_time_steps = int(floor((mov_time_/control_cycle_sec_) + 1 ));
+  mov_time_ = double (all_time_steps - 1) * control_cycle_sec_;
+
+  all_time_steps_ = int(mov_time_ / control_cycle_sec_) + 1;
+  goal_joint_tra_.resize(all_time_steps_, result_.size() + 1);
+
+  /* calculate joint trajectory */
+  for(std::map<std::string, robotis_framework::DynamixelState *>::iterator result_it = result_.begin(); result_it != result_.end(); ++result_it)
+  {
+    //std::string joint_name = goal_joint_pose_msg_.name[dim];
+    std::string joint_name = result_it->first;
+    int id = joint_name_to_id_[joint_name];
+
+    double ini_value = goal_joint_position_(id);
+    double tar_value = goal_joint_position_(id);
+
+    std::map<std::string, double>::iterator goal_it = goal_joint_pose_.find(joint_name);
+    if(goal_it != goal_joint_pose_.end())
+      tar_value = goal_it->second;
+
+    Eigen::MatrixXd via_value(1, 1);
+    Eigen::MatrixXd d_via_value(1, 1);
+    Eigen::MatrixXd dd_via_value(1, 1);
+
+    std::map<std::string, double>::iterator via_it = via_joint_pose_.find(joint_name);
+    if(via_it != via_joint_pose_.end())
+    {
+      via_value.coeffRef(0, 0) = via_it->second;
+      d_via_value.coeffRef(0.0) = fabs(tar_value - ini_value) / mov_time_;
+      dd_via_value.fill(0.0);
+    }
+    else
+    {
+      via_value.coeffRef(0, 0) = tar_value;
+      d_via_value.fill(0.0);
+      dd_via_value.fill(0.0);
+    }
+
+    Eigen::MatrixXd tra = robotis_framework::calcMinimumJerkTraWithViaPoints(via_num, ini_value, 0.0, 0.0,
+                                                                             via_value, d_via_value, dd_via_value,
+                                                                             tar_value, 0.0, 0.0,
+                                                                             control_cycle_sec_, via_time, mov_time_);
+
+    goal_joint_tra_.block(0, id, all_time_steps_, 1) = tra;
+  }
+
+  cnt_ = 0;
+  is_moving_ = true;
+
+  ROS_INFO_STREAM("[ready] make trajectory : " << current_job_);
+}
+
 void TestGripperModule::setTorqueLimit()
 {
   robotis_controller_msgs::SyncWriteItem sync_write_msg;
@@ -297,6 +368,7 @@ bool TestGripperModule::checkTrajectory()
       ROS_INFO_STREAM("[start] send trajectory : " << current_job_);
       publishStatusMsg(robotis_controller_msgs::StatusMsg::STATUS_INFO, "Start Trajectory : " + current_job_);
       on_start = true;
+      gripper_current_last_task_ = 0.0;
     }
 
     // joint space control
@@ -304,6 +376,9 @@ bool TestGripperModule::checkTrajectory()
       goal_joint_position_(dim) = goal_joint_tra_(cnt_, dim);
 
     cnt_++;
+
+    // calc the average of joint current
+    gripper_current_last_task_ = (gripper_current_last_task_ * (cnt_ - 1) + gripper_current_) / cnt_;
   }
 
   return on_start;
@@ -314,6 +389,18 @@ void TestGripperModule::process(std::map<std::string, robotis_framework::Dynamix
 {
   if (enable_ == false)
     return;
+
+  /*----- Get Sensor Data -----*/
+  auto sensor_it = sensors.find("current");
+  if(sensor_it != sensors.end())
+    gripper_current_ = sensor_it->second;
+
+  sensor_it = sensors.find("voltage");
+  if(sensor_it != sensors.end())
+  gripper_voltage_ = sensor_it->second;
+
+//  ROS_WARN_STREAM("current : " << gripper_current_ << "(A), voltage : " << gripper_voltage_ << "(V)");
+
 
   /*----- Get Joint Data & Sensor Data-----*/
   for (std::map<std::string, robotis_framework::DynamixelState *>::iterator state_iter = result_.begin();
@@ -507,7 +594,46 @@ void TestGripperModule::moveUp()
     return;
   }
 
+  current_job_ = "move_up_ready";
+
+  goal_joint_pose_.clear();
+  goal_joint_pose_["joint_1"] = up_joint_value_["joint_1"] * M_PI / 180.0;
+  goal_joint_pose_["joint_2"] = up_joint_value_["joint_2"] * M_PI / 180.0;
+
+  tra_gene_tread_ = new boost::thread(boost::bind(&TestGripperModule::traGeneProcJointSpace, this));
+  delete tra_gene_tread_;
+}
+
+void TestGripperModule::moveForward()
+{
+  if(is_moving_ == true)
+  {
+    ROS_ERROR_STREAM("It's busy now, try again. : " << current_job_);
+    return;
+  }
+
   current_job_ = "move_up";
+
+  goal_joint_pose_.clear();
+  goal_joint_pose_["joint_1"] = up_joint_value_["joint_1"] * M_PI / 180.0;
+  goal_joint_pose_["joint_2"] = up_joint_value_["joint_2"] * M_PI / 180.0;
+
+  via_joint_pose_["joint_1"] = via_joint_value_["joint_1"] * M_PI / 180.0;
+  via_joint_pose_["joint_2"] = via_joint_value_["joint_2"] * M_PI / 180.0;
+
+  tra_gene_tread_ = new boost::thread(boost::bind(&TestGripperModule::traGeneProcJointSpaceWithViaPoints, this));
+  delete tra_gene_tread_;
+}
+
+void TestGripperModule::moveUpforReady()
+{
+  if(is_moving_ == true)
+  {
+    ROS_ERROR_STREAM("It's busy now, try again. : " << current_job_);
+    return;
+  }
+
+  current_job_ = "move_up_ready";
 
   goal_joint_pose_.clear();
   goal_joint_pose_["joint_1"] = up_joint_value_["joint_1"] * M_PI / 180.0;
@@ -624,11 +750,11 @@ void TestGripperModule::saveData(bool on_start, int sub_index)
   std::ofstream data_file;
   if(on_start == true || data_file_name_.empty())
   {
-    data_file_name_ = data_file_path_ + currentDateTime() + ".csv";
+    data_file_name_ = data_file_path_ + robot_name_ +"_" + currentDateTime() + ".csv";
     data_file.open (data_file_name_, std::ofstream::out | std::ofstream::app);
 
     // save index
-    data_file << "index,job,sub_index,loadcell,";
+    data_file << "index,job,sub_index,power_consumption,";
     for (auto& it : joint_data_)
     {
       data_file << it.first << ",";
@@ -641,8 +767,9 @@ void TestGripperModule::saveData(bool on_start, int sub_index)
     data_file.open (data_file_name_, std::ofstream::out | std::ofstream::app);
 
   // save data
-  data_file << test_count_ << "," << current_job_ << "," << sub_index << "," << loadcell_state_.value << ",";
+  data_file << test_count_ << "," << current_job_ << "," << sub_index << "," << gripper_current_last_task_ << ",";
   clearLoadcell();
+  // save joint data
   for (auto& it : joint_data_)
   {
     data_file << it.second->joint_status_ << ",";

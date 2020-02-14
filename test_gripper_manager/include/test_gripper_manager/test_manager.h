@@ -28,6 +28,8 @@
 #include "robotis_controller_msgs/StatusMsg.h"
 #include "test_gripper_module/test_gripper_module.h"
 
+#include "robotis_controller/robotis_controller.h"
+
 namespace test_gripper
 {
 
@@ -47,6 +49,7 @@ public:
     GRASP_ON_LOADCELL = 8,
     GET_LOADCELL = 9,
     WAIT_FOR_LOADCELL = 10,
+    MOVE_UP_READY = 11,
   };
 
   enum PROCESS_INDEX
@@ -64,6 +67,7 @@ public:
   };
 
   TestManager();
+  TestManager(const std::string &robot_name);
   ~TestManager();
 
   void startManager();
@@ -74,6 +78,7 @@ public:
   bool resumeTest();
   bool getPrevTestData(std::string &save_path, int &test_count, double &test_time);
   void savePrevTestData();
+  void setRobotName(const std::string& robot_name);
 
   TestGripperModule* test_module_;
 
@@ -89,6 +94,7 @@ private:
   void setTimer(double sec);
   void setTimerThread(double sec);
 
+  std::string robot_name_;
   boost::thread  queue_thread_;
   boost::thread  demo_thread_;
 
@@ -100,6 +106,7 @@ private:
 
   std::string last_command_;
   bool is_start_, is_ready_;
+  bool loadcell_test_;
   int current_process_;
   int current_job_index_;
   std::vector<int> ready_sequency_;

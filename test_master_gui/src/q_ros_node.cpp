@@ -14,12 +14,12 @@
 * limitations under the License.
 *******************************************************************************/
 
-#include "../include/test_gripper_gui/q_ros_node.h"
+#include "../include/test_master_gui/q_ros_node.h"
 
-namespace test_gripper_gui {
+namespace test_master_gui {
 
 
-QNodeTestGriper::QNodeTestGriper(int argc, char** argv)
+QNodeTestMaster::QNodeTestMaster(int argc, char** argv)
   : init_argc_(argc),
     init_argv_(argv),
     set_end_count_(false),
@@ -28,7 +28,7 @@ QNodeTestGriper::QNodeTestGriper(int argc, char** argv)
 
 }
 
-QNodeTestGriper::~QNodeTestGriper()
+QNodeTestMaster::~QNodeTestMaster()
 {
   if (ros::isStarted())
   {
@@ -39,7 +39,7 @@ QNodeTestGriper::~QNodeTestGriper()
   wait();
 }
 
-bool QNodeTestGriper::init()
+bool QNodeTestMaster::init()
 {
   // init ros
   ros::init(init_argc_, init_argv_, ROS_PACKAGE_NAME);
@@ -55,18 +55,37 @@ bool QNodeTestGriper::init()
   ros::NodeHandle nh;
   ros::NodeHandle p_nh("~");
 
-  robot_name_ = p_nh.param<std::string>("robot_name", "");
+  // parsing robot list from ros parameter
+  std::string robots = p_nh.param<std::string>("robot_list", "");
+  boost::split(robot_list_, robots, boost::is_any_of(","));
 
   // initialize variable
   test_count_ = 0;
   test_time_ = ros::Duration(0.0);
 
   // Publisher and Subscriber
-  test_command_pub_ = nh.advertise<std_msgs::String>("test_gripper_command", 0);
-  test_count_sub_ = nh.subscribe("total_test_count", 1, &QNodeTestGriper::testCountCallback, this);
-  test_time_sub_ = nh.subscribe("total_test_time", 1, &QNodeTestGriper::testTimeCallback, this);
-  status_msg_sub_ = nh.subscribe("/robotis/status", 1, &QNodeTestGriper::statusMsgCallback, this);
-  loadcell_sub_ = nh.subscribe("loadcell_state", 1, &QNodeTestGriper::loadcellCallback, this);
+  //  test_command_pub_ = nh.advertise<std_msgs::String>("test_gripper_command", 0);
+  //  test_count_sub_ = nh.subscribe("total_test_count", 1, &QNodeTestMaster::testCountCallback, this);
+  //  test_time_sub_ = nh.subscribe("total_test_time", 1, &QNodeTestMaster::testTimeCallback, this);
+  //  status_msg_sub_ = nh.subscribe("/robotis/status", 1, &QNodeTestMaster::statusMsgCallback, this);
+  //  loadcell_sub_ = nh.subscribe("loadcell_state", 1, &QNodeTestMaster::loadcellCallback, this);
+
+  for(auto robot_it = robot_list_.begin(); robot_it != robot_list_.end(); )
+  {
+    boost::algorithm::trim(*robot_it);
+    if(robot_it->empty())
+    {
+      robot_it = robot_list_.erase(robot_it);
+    }
+    else
+    {
+      std::string topic_name = *robot_it + "/test_gripper_command";
+      ros::Publisher command_pub = nh.advertise<std_msgs::String>(topic_name, 0);
+      //      test_command_pub_list_.push_back(command_pub);
+      test_command_pub_list_[*robot_it] = command_pub;
+      robot_it++;
+    }
+  }
 
   // start thread
   start();
@@ -74,7 +93,7 @@ bool QNodeTestGriper::init()
   return true;
 }
 
-void QNodeTestGriper::run()
+void QNodeTestMaster::run()
 {
   ros::Rate loop_rate(100);
 
@@ -87,40 +106,65 @@ void QNodeTestGriper::run()
   Q_EMIT shutdown_ros();
 }
 
-void QNodeTestGriper::sendCommand(const std::string &command)
+void QNodeTestMaster::sendCommandToAll(const std::string &command)
 {
-   std_msgs::String command_msg;
-   command_msg.data = command;
+  std_msgs::String command_msg;
+  command_msg.data = command;
 
-   //publish
-   test_command_pub_.publish(command_msg);
+  for(auto pub_it = test_command_pub_list_.begin(); pub_it != test_command_pub_list_.end(); ++pub_it)
+  {
+    pub_it->second.publish(command_msg);
+    //    (*pub_it).publish(command_msg);
+  }
 }
 
-void QNodeTestGriper::testCountCallback(const std_msgs::Int32::ConstPtr &msg)
+void QNodeTestMaster::sendCommand(const std::string &robot_name, const std::string &command)
+{
+  std_msgs::String command_msg;
+  command_msg.data = command;
+
+  //publish
+  if(robot_name == "all")
+  {
+    for(auto pub_it = test_command_pub_list_.begin(); pub_it != test_command_pub_list_.end(); ++pub_it)
+    {
+      pub_it->second.publish(command_msg);
+      //    (*pub_it).publish(command_msg);
+    }
+  }
+  else
+  {
+    auto find_it = test_command_pub_list_.find(robot_name);
+    if(find_it != test_command_pub_list_.end())
+      find_it->second.publish(command_msg);
+  }
+}
+
+void QNodeTestMaster::testCountCallback(const std_msgs::Int32::ConstPtr &msg)
 {
   // store test count
   test_count_ = msg->data;
 
   // check to set end count
-//  if(set_end_count_ == true && test_count_ == (end_test_count_ - 1))
+  //  if(set_end_count_ == true && test_count_ == (end_test_count_ - 1))
   if(set_end_count_ == true && test_count_ == end_test_count_)
   {
     // stop next round
-    sendCommand("stop_end");
+    sendCommandToAll("stop_end");
 
     Q_EMIT clearSetEndTest();
   }
 
-//  if(set_end_count_ == true && test_count_ == end_test_count_)
-//  {
-//    Q_EMIT clearSetEndTest();
-//  }
+  //  if(set_end_count_ == true && test_count_ == end_test_count_)
+  //  {
+  //    Q_EMIT clearSetEndTest();
+  //  }
 
   // update ui
   Q_EMIT updateTestCount(test_count_);
 }
 
-void QNodeTestGriper::testTimeCallback(const std_msgs::Duration::ConstPtr &msg)
+void QNodeTestMaster::testTimeCallback(const std_msgs::Duration::ConstPtr &msg)
 {
   // store test time
   test_time_ = msg->data;
@@ -139,7 +183,7 @@ void QNodeTestGriper::testTimeCallback(const std_msgs::Duration::ConstPtr &msg)
   Q_EMIT updateTestTime(time);
 }
 
-void QNodeTestGriper::statusMsgCallback(const robotis_controller_msgs::StatusMsg::ConstPtr &msg)
+void QNodeTestMaster::statusMsgCallback(const robotis_controller_msgs::StatusMsg::ConstPtr &msg)
 {
   std::string status_msg;
   switch(msg->type)
@@ -169,7 +213,7 @@ void QNodeTestGriper::statusMsgCallback(const robotis_controller_msgs::StatusMsg
   Q_EMIT log(status_msg);
 }
 
-void QNodeTestGriper::loadcellCallback(const loadcell_idc::LoadCellState::ConstPtr &msg)
+void QNodeTestMaster::loadcellCallback(const loadcell_idc::LoadCellState::ConstPtr &msg)
 {
   std::string loadcell_state = "";
   if(msg->state == loadcell_idc::LoadCellState::UNSTABLE)

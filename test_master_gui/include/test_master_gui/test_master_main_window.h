@@ -26,24 +26,24 @@
 #include <QString>
 #include <QSizePolicy>
 
-#include "ui_test_gripper_main_window.h"
+#include "ui_test_master_main_window.h"
 #include "q_ros_node.h"
 
 Q_DECLARE_METATYPE(std::string)
 
 namespace Ui {
-class TestGripperMainWindow;
+class TestMasterMainWindow;
 }
 
-namespace test_gripper_gui {
+namespace test_master_gui {
 
-class TestGripperMainWindow : public QMainWindow
+class TestMasterMainWindow : public QMainWindow
 {
   Q_OBJECT
 
 public:
-  explicit TestGripperMainWindow(int argc, char **argv, QWidget *parent = 0);
-  ~TestGripperMainWindow();
+  explicit TestMasterMainWindow(int argc, char **argv, QWidget *parent = 0);
+  ~TestMasterMainWindow();
 
   void readSettings();  // Load up qt program settings at startup
   void writeSettings();  // Save qt program settings when closing
@@ -56,20 +56,21 @@ public Q_SLOTS:
   *******************************************/
   void on_pushButton_ready_clicked(bool clicked);
   void on_pushButton_resume_clicked(bool clicked);
-  void on_pushButton_start_clicked(bool clicked);
+//  void on_pushButton_start_clicked(bool clicked);
   void on_pushButton_start_continue_clicked(bool clicked);
   void on_pushButton_stop_clicked(bool clicked);
   void on_pushButton_e_stop_clicked(bool clicked);
-  void on_pushButton_lock_clicked(bool checked);
+//  void on_pushButton_lock_clicked(bool checked);
+  void on_pushButton_loadcell_command_clicked(bool checked);
 
-  void on_checkBox_set_stop_count_stateChanged(int state);
+//  void on_checkBox_set_stop_count_stateChanged(int state);
 
   void logToStatusBar(const std::string& message);
 
   void updateTestTime(const std::string &time);
   void updateTestCount(int count);
-  void updateLoadcell(const std::string &state, double value);
-  void clearSetEndTest();
+//  void updateLoadcell(const std::string &state, double value);
+//  void clearSetEndTest();
   void setTestName(const std::string &test_name);
 
 protected:
@@ -80,9 +81,8 @@ private:
 //  void updatePositionUI();
   void resizeTitle();
 
-  Ui::TestGripperMainWindow *ui_;
-  QNodeTestGriper *q_node_;
-  std::string title_;
+  Ui::TestMasterMainWindow *ui_;
+  QNodeTestMaster *q_node_;
 };
 
 }
